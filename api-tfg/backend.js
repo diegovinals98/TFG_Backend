@@ -99,7 +99,7 @@ app.get('/admin/health', (req, res) => {
 
 /**
  * @swagger
- * /login:
+ * /login2:
  *   post:
  *     summary: Verifica el inicio de sesión de un usuario
  *     description: Busca un usuario por su nombre y compara la contraseña proporcionada con la almacenada en la base de datos.
@@ -739,6 +739,66 @@ app.delete('/eliminar-serie-usuario', (req, res) => {
   
 });
 
+
+/**
+ * @swagger
+ * paths:
+  /agregar-visualizacion:
+    post:
+      summary: Agrega una visualización de un capítulo por un usuario.
+      description: >
+        Registra la visualización de un capítulo por parte de un usuario. Si el capítulo no existe en la base de datos, primero lo inserta.
+        Asume que el usuario ya existe. Retorna error si no puede verificar la existencia del capítulo o si falla al insertar un nuevo capítulo.
+      operationId: agregarVisualizacion
+      tags:
+        - Visualizaciones
+      requestBody:
+        description: Datos necesarios para agregar una visualización.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idSerie
+                - capituloId
+                - Name
+                - Episode_number
+                - season_number
+                - userid
+              properties:
+                idSerie:
+                  type: string
+                  description: Identificador único de la serie.
+                capituloId:
+                  type: string
+                  description: Identificador único del capítulo.
+                Name:
+                  type: string
+                  description: Nombre del capítulo.
+                Episode_number:
+                  type: integer
+                  description: Número del capítulo dentro de la temporada.
+                season_number:
+                  type: integer
+                  description: Número de la temporada.
+                userid:
+                  type: string
+                  description: Identificador único del usuario que visualiza el capítulo.
+      responses:
+        '200':
+          description: Visualización agregada con éxito.
+        '500':
+          description: Error al verificar la existencia del capítulo o al insertar un nuevo capítulo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Descripción del error.
+*/
 app.post('/agregar-visualizacion', (req, res) => {
   const { idSerie, capituloId, Name, Episode_number, season_number, userid } = req.body;
 
