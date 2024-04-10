@@ -1,4 +1,7 @@
-# TFG_Backend
+# Backend de FAMILYSERIESTRACK
+
+Este proyecto contiene el backend de la aplicación FamilySeriesTrack, que se encarga de gestionar las llamadas a la base de datos y servir los datos a los clientes.
+
 
 ## Estructura del proyecto
 
@@ -19,14 +22,6 @@
 
 - Docker y Docker Compose
 - Node.js (especificar versión)
-
-## Configuración
-
-Explicar cualquier paso de configuración necesario antes de la ejecución, como variables de entorno, archivos de configuración, etc.
-
-## Despliegue
-
-Instrucciones paso a paso para desplegar el backend.
 
 ```bash
 docker-compose up -d
