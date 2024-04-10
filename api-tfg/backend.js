@@ -6,6 +6,9 @@ const fs = require('fs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
 
 
 const app = express();
@@ -50,12 +53,100 @@ app.use(cors({
   origin: 'https://soportefst.lapspartbox.com' // Asegúrate de cambiar esto por tu origen específico
 }));
 
-app.get('/admin/health' , (req,res) => {
-  res.send('Hello World')
-})
 
 
-// Método para verificar el inicio de sesión de un usuario
+const options = {
+  definition: {
+    openapi: '3.0.0', // Versión de OpenAPI
+    info: {
+      title: 'API Family Series Track',
+      version: '1.0.1',
+      description: 'Proporciona funcionalidades que permiten a los usuarios registrarse, iniciar sesión, gestionar su perfil y sus preferencias de visualización, así como seguir sus series favoritas. Los usuarios pueden agregar series a su lista, marcar episodios vistos, recibir notificaciones sobre nuevos episodios, y más. Además, la API facilita la interacción social permitiendo a los usuarios crear grupos, unirse a ellos, y compartir sus intereses en series con amigos o miembros del grupo. Con un enfoque en la experiencia del usuario, la API está construida para ser intuitiva y accesible, asegurando que los entusiastas de las series puedan llevar un seguimiento detallado de sus programas favoritos y descubrir nuevos basados en sus gustos y recomendaciones del sistema.',
+    },
+  },
+  apis: ['./backend.js'], // Apunta al archivo actual
+};
+
+const swaggerSpec = swaggerJsDoc(options);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+
+
+
+/**
+ * @swagger
+ * /admin/health:
+ *   get:
+ *     summary: Verifica la salud del servicio
+ *     description: Retorna "Hello World" como una prueba simple de que el servicio está operativo.
+ *     tags: [Comprobación]
+ *     responses:
+ *       200:
+ *         description: Servicio saludable
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Hello World
+ *       500:
+ *         description: Error interno del servidor
+ */
+app.get('/admin/health', (req, res) => {
+  res.send('Hello World');
+});
+
+
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Verifica el inicio de sesión de un usuario
+ *     description: Busca un usuario por su nombre y compara la contraseña proporcionada con la almacenada en la base de datos.
+ *     tags: [Autenticación]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               usuario:
+ *                 type: string
+ *                 description: Nombre de usuario
+ *               contraseña:
+ *                 type: string
+ *                 description: Contraseña del usuario
+ *             required:
+ *               - usuario
+ *     responses:
+ *       200:
+ *         description: Inicio de sesión exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Indicador de éxito (1 para éxito, 0 para falla)
+ *                 usuario:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     usuario:
+ *                       type: string
+ *                     hashPassword:
+ *                       type: string
+ *                       description: Hash de la contraseña del usuario
+ *       400:
+ *         description: Datos de solicitud incorrectos
+ *       500:
+ *         description: Error interno del servidor
+ */
 app.post('/login2', (req, res) => {
   let usuario = req.body.usuario;
   //let contraseña = req.body.contraseña; // Asegúrate de que esto coincida con el nombre de campo en tu base de datos
@@ -86,37 +177,42 @@ app.post('/login2', (req, res) => {
   });
 });
 
-// Método para verificar el inicio de sesión de un usuario
-app.post('/login', (req, res) => {
-  let usuario = req.body.usuario;
-  let contraseña = req.body.contraseña; // Asegúrate de que esto coincida con el nombre de campo en tu base de datos
 
-  console.log("Usuario: " + usuario);
-  console.log("Contraseña: " + contraseña);
-  let sql = 'SELECT * FROM Usuarios WHERE Usuario = ? AND Contraseña = ?';
-  db.query(sql, [usuario, contraseña], (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).send('Error al verificar el usuario');
-    }
-    if (results.length > 0) {
-      // Usuario encontrado y contraseña correcta
-      
-
-      console.log('Inicio de sesión exitoso');
-      // Envía los datos del usuario en la respuesta
-      let user = results[0]; // asumiendo que el usuario es único
-      console.log(user)
-      res.json({ success: 1, user: user });
-    } else {
-      // Usuario no encontrado o contraseña incorrecta
-      console.log('Usuario o contraseña incorrectos');
-      res.json({ success: 0 });
-    }
-  });
-});
-
-// Ruta de prueba para obtener datos de la tabla Usuarios
+/**
+ * @swagger
+ * /usuario:
+ *   get:
+ *     summary: Obtiene una lista de todos los usuarios
+ *     description: Devuelve una lista con todos los usuarios registrados en la base de datos.
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios obtenida con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   Id:
+ *                     type: integer
+ *                     description: El ID único del usuario
+ *                   Nombre:
+ *                     type: string
+ *                     description: El nombre del usuario
+ *                   Usuario:
+ *                     type: string
+ *                     description: El nombre de usuario
+ *                   Contraseña:
+ *                     type: string
+ *                     description: La contraseña del usuario (hash)
+ *                   Apellidos:
+ *                     type: string
+ *                     description: Los apellidos del usuario
+ *       500:
+ *         description: Error al obtener la lista de usuarios
+ */
 app.get('/usuario', (req, res) => {
   console.log("llamado a Usuario")
   let sql = 'SELECT * FROM Usuarios';
@@ -127,6 +223,55 @@ app.get('/usuario', (req, res) => {
   });
 });
 
+
+/**
+ * @swagger
+ * /usuario/{id}:
+ *   put:
+ *     summary: Actualiza los detalles de un usuario
+ *     description: Actualiza la información de un usuario existente en la base de datos basándose en su ID único.
+ *     tags: [Usuarios]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: El ID del usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newNombre:
+ *                 type: string
+ *                 description: El nuevo nombre del usuario
+ *               newApellidos:
+ *                 type: string
+ *                 description: Los nuevos apellidos del usuario
+ *               newUsuario:
+ *                 type: string
+ *                 description: El nuevo nombre de usuario
+ *               newContrasena:
+ *                 type: string
+ *                 description: La nueva contraseña del usuario
+ *             required:
+ *               - newNombre
+ *               - newApellidos
+ *               - newUsuario
+ *               - newContrasena
+ *     responses:
+ *       200:
+ *         description: Datos del usuario actualizados correctamente
+ *       400:
+ *         description: Solicitud incorrecta debido a la falta de datos necesarios
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error al actualizar el usuario
+ */
 app.put('/usuario/:id', (req, res) => {
   const { id } = req.params;
   const { newNombre, newApellidos, newUsuario, newContrasena } = req.body;
@@ -144,7 +289,59 @@ app.put('/usuario/:id', (req, res) => {
 });
 
 
-// Ruta para añadir un nuevo usuario a la tabla Usuarios
+/**
+ * @swagger
+ * /usuario:
+ *   post:
+ *     summary: Añade un nuevo usuario a la base de datos
+ *     description: Crea un nuevo usuario con los datos proporcionados. Verifica que el nombre de usuario no esté ya en uso.
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               Id:
+ *                 type: integer
+ *                 description: El ID único del usuario (opcional).
+ *               Nombre:
+ *                 type: string
+ *                 description: El nombre del usuario.
+ *               Usuario:
+ *                 type: string
+ *                 description: El nombre de usuario, que debe ser único.
+ *               Contraseña:
+ *                 type: string
+ *                 description: La contraseña del usuario.
+ *               Apellidos:
+ *                 type: string
+ *                 description: Los apellidos del usuario.
+ *             required:
+ *               - Nombre
+ *               - Usuario
+ *               - Contraseña
+ *               - Apellidos
+ *     responses:
+ *       200:
+ *         description: Usuario añadido con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: integer
+ *                   description: Un indicador de éxito (1 para éxito, 0 para fallo)
+ *                 message:
+ *                   type: string
+ *                   description: Mensaje descriptivo del resultado
+ *       400:
+ *         description: Falta información necesaria o el nombre de usuario ya está en uso
+ *       500:
+ *         description: Error al insertar el usuario en la base de datos
+ */
 app.post('/usuario', (req, res) => {
   console.log("Añadiendo un nuevo usuario");
   
@@ -183,7 +380,32 @@ app.post('/usuario', (req, res) => {
 
 
 
-// Ruta de prueba para obtener datos de la tabla Usuario_grupo
+/**
+ * @swagger
+ * /usuario_grupo:
+ *   get:
+ *     summary: Obtiene una lista de los grupos de usuarios
+ *     description: Devuelve todos los registros de la tabla Usuario_Grupo2, que relaciona a los usuarios con sus grupos.
+ *     tags: [Usuario Grupo]
+ *     responses:
+ *       200:
+ *         description: Lista de grupos de usuarios obtenida con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   ID_Grupo:
+ *                     type: integer
+ *                     description: El ID del grupo
+ *                   ID_Usuario:
+ *                     type: integer
+ *                     description: El ID del usuario perteneciente al grupo
+ *       500:
+ *         description: Error en el servidor
+ */
 app.get('/usuario_grupo', (req, res) => {
   console.log("llamado a Usuario_Grupo")
   let sql = 'SELECT * FROM Usuario_Grupo2';
@@ -194,7 +416,42 @@ app.get('/usuario_grupo', (req, res) => {
   });
 });
 
-// Ruta para obtener los grupos a los que pertenece un usuario
+
+/**
+ * @swagger
+ * /grupos/{userId}:
+ *   get:
+ *     summary: Obtiene los grupos de un usuario específico
+ *     description: Devuelve una lista de todos los grupos a los que pertenece un usuario, basado en su ID de usuario.
+ *     tags: [Grupos]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: El ID del usuario
+ *     responses:
+ *       200:
+ *         description: Lista de grupos obtenida con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   ID_Grupo:
+ *                     type: integer
+ *                     description: El ID del grupo
+ *                   Nombre_grupo:
+ *                     type: string
+ *                     description: El nombre del grupo
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error en el servidor
+ */
 app.get('/grupos/:userId', (req, res) => {
   const userId = req.params.userId;
   console.log("Llamado a grupos para el usuario:", userId);
@@ -217,13 +474,42 @@ app.get('/grupos/:userId', (req, res) => {
 
 
 
-/*
-Esta función maneja una solicitud GET para obtener los IDs de las series de televisión 
-que son comunes a todos los usuarios de un grupo específico. 
-Recibe el ID de un usuario y el nombre de un grupo como parámetros, 
-busca el ID del grupo en la base de datos, y luego consulta las series que todos 
-los usuarios de ese grupo tienen en común.
-*/
+
+/**
+ * @swagger
+ * /series-ids-usuario/{userId}:
+ *   get:
+ *     summary: Obtiene los IDs de series comunes a todos los usuarios de un grupo
+ *     description: Devuelve los IDs de las series que son comunes a todos los usuarios de un grupo específico. Requiere el ID de un usuario y el nombre de un grupo como parámetros.
+ *     tags: [Series]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: El ID del usuario.
+ *       - in: query
+ *         name: value
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: El nombre del grupo.
+ *     responses:
+ *       200:
+ *         description: Lista de IDs de series comunes obtenida con éxito.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: integer
+ *                 description: ID de una serie.
+ *       404:
+ *         description: Grupo no encontrado o no hay usuarios en el grupo.
+ *       500:
+ *         description: Error interno del servidor.
+ */
 app.get('/series-ids-usuario/:userId', (req, res) => {
   // Extraemos el userId del parámetro de ruta y el groupName del parámetro de consulta
   const userId = req.params.userId;
@@ -319,7 +605,37 @@ app.get('/series-ids-usuario/:userId', (req, res) => {
 
 
 
-
+/**
+ * @swagger
+ * /agregar-serie-usuario:
+ *   post:
+ *     summary: Agrega una nueva serie al perfil de un usuario
+ *     description: Permite agregar una nueva serie a la lista de un usuario, comprobando primero si la serie ya está asociada con dicho usuario.
+ *     tags: [Series]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: El ID del usuario.
+ *               idSerie:
+ *                 type: integer
+ *                 description: El ID de la serie a agregar.
+ *             required:
+ *               - userId
+ *               - idSerie
+ *     responses:
+ *       200:
+ *         description: Serie agregada exitosamente al usuario.
+ *       409:
+ *         description: La serie ya existe para el usuario.
+ *       500:
+ *         description: Error al insertar la serie en el servidor.
+ */
 app.post('/agregar-serie-usuario', (req, res) => {
   const userId = req.body.userId;
   const idSerie = req.body.idSerie;
@@ -356,6 +672,38 @@ app.post('/agregar-serie-usuario', (req, res) => {
   });
 });
 
+
+/**
+ * @swagger
+ * /eliminar-serie-usuario:
+ *   delete:
+ *     summary: Elimina una serie del perfil de un usuario
+ *     description: Elimina una serie específica asociada con un usuario, basándose en los IDs del usuario y de la serie. Si la serie especificada no está asociada con el usuario, devuelve un mensaje indicando que la serie no existe para ese usuario.
+ *     tags: [Series]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: El ID del usuario del cual se desea eliminar la serie.
+ *               idSerie:
+ *                 type: integer
+ *                 description: El ID de la serie que se desea eliminar del perfil del usuario.
+ *             required:
+ *               - userId
+ *               - idSerie
+ *     responses:
+ *       200:
+ *         description: Serie eliminada exitosamente del usuario.
+ *       404:
+ *         description: La serie especificada no existe para el usuario.
+ *       500:
+ *         description: Error al eliminar la serie en el servidor.
+ */
 app.delete('/eliminar-serie-usuario', (req, res) => {
   const userId = req.body.userId;
   const idSerie = req.body.idSerie;
@@ -1058,6 +1406,8 @@ app.post('/enviar-soporte', (req, res) => {
       res.send('Mensaje enviado con éxito');
   });
 });
+
+
 
 
 const PORT = process.env.PORT || 3000;

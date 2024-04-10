@@ -7,7 +7,6 @@ networks:
         - subnet: 172.20.0.0/16
    
 
-
 services:
   portainer:
     image: portainer/portainer:latest
