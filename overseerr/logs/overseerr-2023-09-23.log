@@ -1,0 +1,5 @@
+2023-09-23T19:57:23.184Z [info]: Commit Tag: v1.32.5 
+2023-09-23T19:57:23.897Z [info]: Starting Overseerr version 1.32.5 
+2023-09-23T19:57:25.645Z [info][Notifications]: Registered notification agents 
+2023-09-23T19:57:25.664Z [info][Jobs]: Scheduled jobs loaded 
+2023-09-23T19:57:25.763Z [info][Server]: Server ready on port 5055 

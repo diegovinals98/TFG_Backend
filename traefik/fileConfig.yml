@@ -1,0 +1,192 @@
+# Dynamic config
+http:
+  ## EXTERNAL ROUTING ##
+  routers:
+    # Login routing
+    
+    # QBittorrent routing
+    qbittorrent:
+      entryPoints:
+        - https
+      rule: "Host(`qbittorrent.lapspartbox.com`)"
+      service: qbittorrentService
+      #middlewares:
+      #  - "auth"
+    # radarr routing
+    radarr:
+      entryPoints:
+        - https
+      rule: "Host(`radarr.lapspartbox.com`)"
+      service: radarrService
+      #middlewares:
+       # - "auth"
+    # prowlarr routing
+
+
+    prowlarr: 
+      entryPoints:
+        - https
+      rule: "Host(`prowlarr.lapspartbox.com`)"
+      service: prowlarrService
+
+    portainer: 
+      entryPoints:
+        - https
+      rule: "Host(`portainer.lapspartbox.com`)"
+      service: portainerService
+    
+    # sonarr routing
+    sonarr:
+      entryPoints:
+        - https
+      rule: "Host(`sonarr.lapspartbox.com`)"
+      service: sonarrService
+      #middlewares:
+       # - "auth"
+
+    # sonarr routing
+    apitfg:
+      entryPoints:
+        - https
+      rule: "Host(`apitfg.lapspartbox.com`)"
+      service: apitfgservice
+
+    web:
+      entryPoints:
+        - https
+      rule: "Host(`privacidadfst.lapspartbox.com`)"
+      service: webPrivacidadService
+    
+    soporte:
+      entryPoints:
+        - https
+      rule: "Host(`soportefst.lapspartbox.com`)"
+      service: soporteService
+
+
+    phpMyAdmin:
+      entryPoints:
+        - https
+      rule: "Host(`adminmariadb.lapspartbox.com`)"
+      service: phpMyAdminService
+      #middlewar
+
+
+   
+    
+    # firefly routing
+   
+    overseerr:
+      entryPoints:
+        - https
+      rule: "Host(`pelis.lapspartbox.com`)"
+      service: overseerrService
+      #middlewares:
+      #  - "auth"
+    
+  ## SERVICES ##
+  services:
+    # login service
+    
+    # portainer service
+    portainerService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.27:9000
+    # organizr service
+
+    # mariaDb service
+    apitfgservice:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.33:3000
+    
+    webPrivacidadService:
+       loadBalancer:
+        servers:
+          - url: http://172.20.0.34:80
+
+    soporteService:
+       loadBalancer:
+        servers:
+          - url: http://172.20.0.35:80
+    # organizr service
+    
+    # php my admin service
+    qbittorrentService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.12:4444
+    # radarr service
+    radarrService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.16:7878/
+
+    sonarrService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.6:8989/
+    # radarr service
+  
+    # radarr service
+    prowlarrService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.9:9696/
+    
+    overseerrService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.8:5055/
+
+          
+    phpMyAdminService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.11:80/
+    
+
+  # # middlewares ##
+  middlewares:
+    # Authelia guard
+    auth:
+      forwardauth:
+        address: http://authelia:9091/api/verify?rd=https://identity.livisbox.com/
+        trustForwardHeader: true
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+          - Remote-Name
+          - Remote-Email
+    # Authelia basic auth guard
+    auth-basic:
+      forwardauth:
+        address: http://authelia:9091/api/verify?auth=basic
+        trustForwardHeader: true
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+          - Remote-Name
+          - Remote-Email
+    #Security headers
+    securityHeaders:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "none,noarchive,nosnippet,notranslate,noimageindex"
+          X-Forwarded-Proto: "https"
+          server: ""
+        sslProxyHeaders:
+          X-Forwarded-Proto: https
+        referrerPolicy: "same-origin"
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        contentTypeNosniff: true
+        browserXssFilter: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsSeconds: 63072000
+        stsPreload: true
+

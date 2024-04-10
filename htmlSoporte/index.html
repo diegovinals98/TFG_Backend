@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Soporte - Family Series Track</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f7f7f7;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, textarea {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Formulario de Soporte - Family Series Track</h2>
+        <form id="formSoporte">
+            <input type="text" id="nombre" name="nombre" placeholder="Su nombre" required>
+            <input type="email" id="email" name="email" placeholder="Su dirección de correo electrónico" required>
+            <textarea id="mensaje" name="mensaje" rows="4" placeholder="Describa su problema o consulta" required></textarea>
+            <button type="submit">Enviar Solicitud</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('formSoporte').addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita el comportamiento por defecto del formulario
+
+            // Crea un objeto con los datos del formulario
+            const formData = new FormData(this);
+            
+            const data = {
+                nombre: formData.get('nombre'),
+                email: formData.get('email'),
+                mensaje: formData.get('mensaje')
+            };
+
+            data2 = JSON.stringify(data)
+            console.log(data2)
+
+            // Realiza la solicitud fetch a tu API
+            fetch('https://apitfg.lapspartbox.com/enviar-soporte', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: data2
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // O .text() si tu API devuelve texto
+                }
+                throw new Error('La solicitud a la API falló');
+            })
+            .then(data => {
+                console.log(data); // Aquí manejas la respuesta de éxito
+                alert('Solicitud enviada con éxito.');
+                // Resetea el formulario después del envío exitoso
+                document.getElementById('formSoporte').reset();
+            })
+            .catch(error => {
+                console.error(error);
+                //alert('Hubo un problema con tu solicitud de soporte.');
+            });
+
+            alert('Solicitud enviada con éxito.');
+            // Resetea el formulario después del envío exitoso
+            document.getElementById('formSoporte').reset();
+        });
+    </script>
+</body>
+</html>

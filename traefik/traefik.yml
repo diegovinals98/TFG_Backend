@@ -1,0 +1,77 @@
+#Static config
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+serversTransport:
+  insecureSkipVerify: true
+
+entryPoints:
+  # Not used in apps, but redirect everything from http to HTTPS
+  http:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+
+  # HTTPS endpoint, with domain wildcard
+  https:
+    address: :443
+    http:
+      tls:
+        # Generate a wildcard domain certificate
+        certResolver: letsencrypt
+        domains:
+          - main: lapspartbox.com
+            sans:
+              - '*.lapspartbox.com'
+      #middlewares:
+        #- securityHeaders@file
+        #- auth@file #authelia file
+
+providers:
+  providersThrottleDuration: 2
+
+  # File provider for connecting things that are outside of docker / defining middleware
+  file:
+    filename: /etc/traefik/fileConfig.yml
+    watch: true
+
+  # Docker provider for connecting all apps that are inside of the docker network
+  docker:
+    watch: true
+    network: livis_network # Add Your Docker Network Name Here
+    # Default host rule to containername.domain.example
+    defaultRule: "Host(`{{ index .Labels \"com.docker.compose.service\"}}.lapspartbox.com`)"
+    swarmModeRefreshSeconds: 15
+    exposedByDefault: false
+
+# Enable traefik ui
+api:
+  dashboard: true
+  insecure: true
+
+# Log level INFO|DEBUG|ERROR
+log:
+  level: ERROR
+
+# Use letsencrypt to generate ssl serficiates
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: diego.vinalslage@gmail.com  # change to your provider account email address.
+      storage: /etc/traefik/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        # Used to make sure the dns challenge is propagated to the rights dns servers
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
+
+
+#pilot:
+#  token: "2e85ef4d-8641-43b8-bad2-5c08bea2e34d"
+
+#extra_hosts: 
+#  - host.docker.internal:172.17.0.1
