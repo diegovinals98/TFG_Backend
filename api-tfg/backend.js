@@ -15,17 +15,9 @@ const app = express();
 
 app.use(express.json()); // Para analizar application/json
   console.log('Conectando...')
+
+
   // Crear conexión a la base de datos
-
-  /** 
-  const db = mysql.createConnection({
-    host: '2.139.97.114', // La IP de tu máquina donde corre Docker
-    user: 'root', // El usuario de la base de datos
-    password: '27101998', // La contraseña de la base de datos
-    database: 'Series' // El nombre de tu base de datos
-  });
-  */
-
   const db = mysql.createConnection({
     host: '192.168.1.113', // La IP de tu máquina donde corre Docker
     user: 'root', // El usuario de la base de datos
@@ -33,7 +25,7 @@ app.use(express.json()); // Para analizar application/json
     database: 'Series' // El nombre de tu base de datos
   });
 
-  conectado = 0
+
 
   // Conectar a la base de datos
   db.connect((err) => {
@@ -41,19 +33,15 @@ app.use(express.json()); // Para analizar application/json
       console.log('----- ERROR -----')
       throw err;
     }
-    conectado = 1
     const now = new Date();
     const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
     console.log(`Conectado a MariaDB - ${now.toLocaleDateString('es-ES', options)}`);
 
-    
 });
 
 app.use(cors({
   origin: 'https://soportefst.lapspartbox.com' // Asegúrate de cambiar esto por tu origen específico
 }));
-
-
 
 const options = {
   definition: {
