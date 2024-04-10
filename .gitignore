@@ -2,7 +2,6 @@
 portainer/
 guacd/
 guacamole/
-cloudflared/
 jackett/
 overseerr/
 plex/
