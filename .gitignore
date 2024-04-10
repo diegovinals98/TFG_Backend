@@ -1,12 +1,13 @@
 portainer
 guacad
 guacamole
-cloudflare
+cloudflared
 jackett
-overserr
+overseerr
 plex
 prowlarr
-qbitorrent
+qbittorrent
 radarr
 shared
 sonarr
+api-tfg/node_modules
