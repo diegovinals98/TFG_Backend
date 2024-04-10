@@ -1,5 +1,0 @@
-{"level":"info","message":"Commit Tag: v1.32.5","timestamp":"2023-09-23T19:57:23.184Z"}
-{"level":"info","message":"Starting Overseerr version 1.32.5","timestamp":"2023-09-23T19:57:23.897Z"}
-{"label":"Notifications","level":"info","message":"Registered notification agents","timestamp":"2023-09-23T19:57:25.645Z"}
-{"label":"Jobs","level":"info","message":"Scheduled jobs loaded","timestamp":"2023-09-23T19:57:25.664Z"}
-{"label":"Server","level":"info","message":"Server ready on port 5055","timestamp":"2023-09-23T19:57:25.763Z"}
