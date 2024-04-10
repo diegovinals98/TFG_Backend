@@ -1,13 +1,17 @@
-portainer
-guacad
-guacamole
-cloudflared
-jackett
-overseerr
-plex
-prowlarr
-qbittorrent
-radarr
-shared
-sonarr
-api-tfg/node_modules
+# Directorios de aplicaciones
+portainer/
+guacd/
+guacamole/
+cloudflared/
+jackett/
+overseerr/
+plex/
+prowlarr/
+qbittorrent/
+radarr/
+shared/
+sonarr/
+
+# Dependencias
+# Ignorar node_modules para evitar subir dependencias innecesarias
+api-tfg/node_modules/
