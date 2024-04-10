@@ -1970,3 +1970,9 @@
 {"label":"Jobs","level":"debug","message":"Starting scheduled job: Download Sync","timestamp":"2024-04-10T11:07:00.006Z"}
 {"label":"Jobs","level":"debug","message":"Starting scheduled job: Download Sync","timestamp":"2024-04-10T11:08:00.017Z"}
 {"label":"Jobs","level":"debug","message":"Starting scheduled job: Download Sync","timestamp":"2024-04-10T11:09:00.017Z"}
+{"label":"Jobs","level":"debug","message":"Starting scheduled job: Download Sync","timestamp":"2024-04-10T11:10:00.018Z"}
+{"label":"Jobs","level":"info","message":"Starting scheduled job: Plex Recently Added Scan","timestamp":"2024-04-10T11:10:00.019Z"}
+{"label":"Plex Scan","level":"info","message":"Scan starting","sessionId":"36c9ab7c-4479-4b7c-9141-7d8bc69f8e32","timestamp":"2024-04-10T11:10:00.020Z"}
+{"label":"Plex Scan","lastScan":1712747100029,"level":"info","message":"Beginning to process recently added for library: Movies","timestamp":"2024-04-10T11:10:00.024Z"}
+{"label":"Plex Scan","lastScan":1712747100032,"level":"info","message":"Beginning to process recently added for library: TV Shows","timestamp":"2024-04-10T11:10:00.029Z"}
+{"label":"Plex Scan","level":"info","message":"Recently Added Scan Complete","timestamp":"2024-04-10T11:10:00.032Z"}

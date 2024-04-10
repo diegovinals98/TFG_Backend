@@ -1970,3 +1970,9 @@
 2024-04-10T11:07:00.006Z [debug][Jobs]: Starting scheduled job: Download Sync 
 2024-04-10T11:08:00.017Z [debug][Jobs]: Starting scheduled job: Download Sync 
 2024-04-10T11:09:00.017Z [debug][Jobs]: Starting scheduled job: Download Sync 
+2024-04-10T11:10:00.018Z [debug][Jobs]: Starting scheduled job: Download Sync 
+2024-04-10T11:10:00.019Z [info][Jobs]: Starting scheduled job: Plex Recently Added Scan 
+2024-04-10T11:10:00.020Z [info][Plex Scan]: Scan starting {"sessionId":"36c9ab7c-4479-4b7c-9141-7d8bc69f8e32"}
+2024-04-10T11:10:00.024Z [info][Plex Scan]: Beginning to process recently added for library: Movies {"lastScan":1712747100029}
+2024-04-10T11:10:00.029Z [info][Plex Scan]: Beginning to process recently added for library: TV Shows {"lastScan":1712747100032}
+2024-04-10T11:10:00.032Z [info][Plex Scan]: Recently Added Scan Complete 
