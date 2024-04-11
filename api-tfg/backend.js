@@ -1220,6 +1220,32 @@ app.get('/usuario_por_id/:idUsuario', (req, res) => {
   });
 });
 
+app.get('/grupo_por_nombre/:nombreGrupo', (req, res) => {
+  console.log(req.params);
+  const nombreGrupo = req.params.nombreGrupo;
+  console.log('Grupo a buscar: ', nombreGrupo);
+
+  db.query('SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?', [nombreGrupo], (err, resultados) => {
+    if (err) {
+      console.error('Error al obtener el ID del grupo:', err);
+      return res.status(500).send('Error al obtener el ID del grupo');
+    }
+
+    // Verifica si se encontraron resultados
+    if (resultados.length > 0) {
+      // Como esperamos un único resultado, tomamos el primer elemento
+      const idGrupo = resultados[0].ID_Grupo;
+
+      res.json({
+        idGrupo: idGrupo,
+      });
+    } else {
+      // Maneja el caso en que no se encuentran resultados
+      res.status(404).send('Grupo no encontrado');
+    }
+  });
+});
+
 
 app.post('/anadir_usuario_a_grupo', (req, res) => {
   const idUsuario = req.body.idUsuario; // Acceso correcto al cuerpo de la solicitud
