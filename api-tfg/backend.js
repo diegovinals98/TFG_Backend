@@ -1246,9 +1246,9 @@ app.get('/grupo_por_nombre/:nombreGrupo', (req, res) => {
   });
 });
 
-app.get('/comentarios_por_grupo_serie', (req, res) => {
-  const grupoId = req.query.grupo_id;
-  const serieId = req.query.serie_id;
+app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
+  const grupoId = req.params.grupo_id;
+  const serieId = req.params.serie_id;
 
   if (!grupoId || !serieId) {
     return res.status(400).send('Faltan parámetros necesarios: grupo_id y serie_id');
