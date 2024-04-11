@@ -1254,6 +1254,33 @@ app.post('/anadir_usuario_a_grupo', (req, res) => {
   });
 });
 
+app.post('/anadir_comentario_a_serie', (req, res) => {
+  // Recibir los datos necesarios del cuerpo de la solicitud
+  const idUsuario = req.body.idUsuario;
+  const idGrupo = req.body.idGrupo;
+  const idSerie = req.body.idSerie;
+  const comentario = req.body.comentario;
+
+  console.log("Id usuario: ", idUsuario);
+  console.log("Id grupo: ", idGrupo);
+  console.log("Id serie: ", idSerie);
+  console.log("Comentario: ", comentario);
+
+  // Insertar el comentario en la base de datos
+  db.query('INSERT INTO ComentariosSerie (comentario, usuario_id, grupo_id, serie_id) VALUES (?, ?, ?, ?)', [comentario, idUsuario, idGrupo, idSerie], (errorInsert, resultsInsert) => {
+    if (errorInsert) {
+      // Manejar errores de base de datos aquí
+      console.log("Error BBDD: ", errorInsert);
+      res.json({ success: 0, mensaje: 'Error del servidor al insertar el comentario' });
+    } else {
+      let mensaje = 'Comentario añadido con éxito';
+      console.log(mensaje);
+      res.json({ success: 1, mensaje: mensaje, idComentario: resultsInsert.insertId }); // Devuelve el ID del comentario insertado
+    }
+  });
+});
+
+
 
 
 // modifca el nombre de un grupo
