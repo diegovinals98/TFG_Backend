@@ -1263,7 +1263,7 @@ app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
     FROM 
       ComentariosSerie
     JOIN 
-      Usuarios ON ComentariosSerie.usuario_id = Usuarios.ID_Usuario
+      Usuarios ON ComentariosSerie.usuario_id = Usuarios.Id
     WHERE 
       ComentariosSerie.grupo_id = ? AND ComentariosSerie.serie_id = ?
     ORDER BY 
