@@ -1246,6 +1246,48 @@ app.get('/grupo_por_nombre/:nombreGrupo', (req, res) => {
   });
 });
 
+app.get('/comentarios_por_grupo_serie', (req, res) => {
+  const grupoId = req.query.grupo_id;
+  const serieId = req.query.serie_id;
+
+  if (!grupoId || !serieId) {
+    return res.status(400).send('Faltan parámetros necesarios: grupo_id y serie_id');
+  }
+
+  const consultaSQL = `
+    SELECT 
+      Usuarios.Nombre, 
+      Usuarios.Apellidos, 
+      ComentariosSerie.comentario, 
+      ComentariosSerie.fecha_hora
+    FROM 
+      ComentariosSerie
+    JOIN 
+      Usuarios ON ComentariosSerie.usuario_id = Usuarios.ID_Usuario
+    WHERE 
+      ComentariosSerie.grupo_id = ? AND ComentariosSerie.serie_id = ?
+    ORDER BY 
+      ComentariosSerie.fecha_hora ASC
+  `;
+
+  db.query(consultaSQL, [grupoId, serieId], (error, resultados) => {
+    if (error) {
+      console.error('Error al obtener los comentarios:', error);
+      return res.status(500).send('Error al obtener los comentarios');
+    }
+
+    // Convierte los resultados en un formato más amigable si es necesario
+    const comentarios = resultados.map(comentario => ({
+      nombreCompleto: `${comentario.Nombre} ${comentario.Apellidos}`,
+      comentario: comentario.comentario,
+      fechaHora: comentario.fecha_hora,
+    }));
+
+    res.json(comentarios);
+  });
+});
+
+
 
 app.post('/anadir_usuario_a_grupo', (req, res) => {
   const idUsuario = req.body.idUsuario; // Acceso correcto al cuerpo de la solicitud
