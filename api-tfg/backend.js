@@ -1283,6 +1283,8 @@ app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
       fechaHora: comentario.fecha_hora,
     }));
 
+    console.log('COMENTARIOS' , comentarios)
+
     res.json(comentarios);
   });
 });
