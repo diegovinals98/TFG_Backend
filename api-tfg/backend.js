@@ -1284,33 +1284,7 @@ paths:
                     example: "Error al verificar el grupo"
 
                     */
-app.post('/crear-grupo-y-asociar-usuarios', (req, res) => {
-  const { nombreGrupo, nombresUsuarios } = req.body;
-
-  // Verificar si el nombre del grupo ya existe
-  db.query('SELECT * FROM Grupos WHERE Nombre_grupo = ?', [nombreGrupo], (err, grupoResults) => {
-    if (err) {
-      console.error('Error al verificar el grupo:', err);
-      return res.status(500).send('Error al verificar el grupo');
-    }
-
-    if (grupoResults.length > 0) {
-      // El grupo ya existe
-      const idGrupo = grupoResults[0].ID_Grupo;
-      console.log('El grupo ya existe con ID:', idGrupo);
-      res.send({ message: 'El grupo ya existe' });
-      //asociarUsuariosAGrupo(nombresUsuarios, idGrupo, res);
-    } else {
-      // El grupo no existe, intenta crear uno nuevo con un ID único
-      insertarGrupoConIdUnico(nombreGrupo, res, (idGrupoNuevo) => {
-      asociarUsuariosAGrupo(nombresUsuarios, idGrupoNuevo, res);
-      });
-    }
-  });
-});
-
-// Función para insertar un grupo con un ID único
-const insertarGrupoConIdUnico = (nombreGrupo, res, callback) => {
+const insertarGrupoConIdUnico = (nombreGrupo, admin, res, callback) => {
   let idGrupo = Math.floor(Math.random() * 1000000);
 
   const verificarYCrearGrupo = () => {
@@ -1323,11 +1297,11 @@ const insertarGrupoConIdUnico = (nombreGrupo, res, callback) => {
 
       if (results.length > 0) {
         // El ID del grupo ya existe, genera uno nuevo y reintenta
-        idGrupo =  Math.floor(Math.random() * 1000000);
+        idGrupo = Math.floor(Math.random() * 1000000);
         verificarYCrearGrupo();
       } else {
         // El ID del grupo no existe, crea el grupo
-        db.query('INSERT INTO Grupos (ID_Grupo, Nombre_grupo) VALUES (?, ?)', [idGrupo, nombreGrupo], (crearErr, crearResult) => {
+        db.query('INSERT INTO Grupos (ID_Grupo, Nombre_grupo, Admin) VALUES (?, ?, ?)', [idGrupo, nombreGrupo, admin], (crearErr, crearResult) => {
           if (crearErr) {
             console.error('Error al crear el grupo:', crearErr);
             return res.status(500).send('Error al crear el grupo');
@@ -1341,6 +1315,14 @@ const insertarGrupoConIdUnico = (nombreGrupo, res, callback) => {
 
   verificarYCrearGrupo();
 };
+
+// Ajusta la llamada inicial para incluir admin
+app.post('/crear-grupo-y-asociar-usuarios', (req, res) => {
+  const { nombreGrupo, nombresUsuarios, admin } = req.body;
+  insertarGrupoConIdUnico(nombreGrupo, admin, res, (idGrupoNuevo) => {
+    asociarUsuariosAGrupo(nombresUsuarios, idGrupoNuevo, res);
+  });
+});
 
 function asociarUsuariosAGrupo(nombresUsuarios, idGrupo, res) {
   // Mapear cada nombre de usuario a una promesa que realiza la verificación y posible asociación
@@ -1512,6 +1494,31 @@ app.get('/miembros-grupo/:nombreGrupo', (req, res) => {
   });
 });
 
+
+app.get('/id-admin/:idGrupo', (req, res) => {
+
+  const { idGrupo } = req.params;
+
+  console.log('Id del grupo que busca Admin: ' + idGrupo)
+    // Luego, obtén los miembros del grupo usando el ID del grupo
+    const sqlGetAdmin = `
+      SELECT Admin
+      FROM Grupos
+      WHERE ID_Grupo = ?
+    `;
+
+    db.query(sqlGetAdmin, [idGrupo], (err, adminResult) => {
+      if (err) {
+        console.error('Error al obtener el admin del grupo:', err);
+        return res.status(500).send('Error al obtener el admin del grupo');
+      }
+
+      res.json({
+        admin: adminResult
+      });
+    });
+
+});
 
 /*
 paths:

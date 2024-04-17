@@ -10,7 +10,11 @@ qbittorrent/
 radarr/
 shared/
 sonarr/
+mariadb/databases/
+mariadb/log/
+
 
 # Dependencias
 # Ignorar node_modules para evitar subir dependencias innecesarias
 api-tfg/node_modules/
+
