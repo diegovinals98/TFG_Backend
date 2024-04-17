@@ -498,97 +498,69 @@ app.get('/grupos/:userId', (req, res) => {
  *       500:
  *         description: Error interno del servidor.
  */
-app.get('/series-ids-usuario/:userId', (req, res) => {
-  // Extraemos el userId del parámetro de ruta y el groupName del parámetro de consulta
-  const userId = req.params.userId;
-  const groupName = req.query.value; // 'value' ahora representa el nombre del grupo
 
-  // Si el nombre del grupo es "Grupos", devolvemos una respuesta JSON vacía
-  if (groupName === "Grupos") {
-    console.log("groupName es 'Grupos', enviando respuesta JSON vacía");
-    res.json({});
-    return;
-  }
+app.get('/series-ids-usuario/:userId/:grupoId', (req, res) => {
+  // Extraemos el userId del parámetro de ruta y el grupoId del parámetro de ruta
+  const userId = req.params.userId;
+  const groupId = req.params.grupoId;
 
   // Registrando en consola el inicio del proceso
   console.log("Llamado para obtener los IDs de series para el usuario:", userId);
-  console.log("Para el grupo con nombre:", groupName);
+  console.log("Para el grupo con ID:", groupId);
 
-  // Consulta SQL para obtener el ID del grupo basándonos en el nombre del grupo
-  let sqlGetGroupId = `SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?`;
+  // Consulta SQL para obtener los IDs de usuarios que pertenecen al grupo
+  let sqlGetUsersInGroup = `SELECT ID_Usuario FROM Usuario_Grupo2 WHERE ID_Grupo = ?`;
 
-  // Ejecución de la consulta para obtener el ID del grupo
-  db.query(sqlGetGroupId, [groupName], (err, groupResults) => {
-    if (err) {
-      // En caso de error en la consulta, devolver un error 500
-      console.error('Error al buscar el grupo:', err);
-      res.status(500).send('Error al buscar el grupo en el servidor');
+  // Ejecución de la consulta para obtener los usuarios del grupo
+  db.query(sqlGetUsersInGroup, [groupId], (usersErr, usersResults) => {
+    if (usersErr) {
+      // En caso de error al obtener usuarios, devolver un error 500
+      console.error('Error en la consulta de usuarios del grupo:', usersErr);
+      res.status(500).send('Error al obtener los usuarios del grupo');
       return;
     }
 
-    // Si no se encuentra el grupo (no hay resultados), devolver un error 404
-    if (groupResults.length === 0) {
-      res.status(404).send('Grupo no encontrado');
-      return;
+    // Extracción de los IDs de los usuarios del resultado de la consulta
+    const userIds = usersResults.map(row => row.ID_Usuario);
+    console.log(`Usuarios en el grupo ${groupId}:`, userIds);
+
+    // Si hay usuarios en el grupo, procedemos a buscar las series en común
+    if (userIds.length > 0) {
+      // Creación de placeholders para la consulta SQL (un '?' por cada ID de usuario)
+      let placeholders = userIds.map(() => '?').join(',');
+
+      // Consulta SQL para obtener los IDs de series que todos los usuarios tienen en común
+      let sqlGetCommonSeries = `
+        SELECT ID_Serie 
+        FROM Series 
+        WHERE ID_Usuario IN (${placeholders}) 
+        GROUP BY ID_Serie 
+        HAVING COUNT(DISTINCT ID_Usuario) = ?
+      `;
+
+      // Ejecución de la consulta para obtener las series en común
+      db.query(sqlGetCommonSeries, [...userIds, userIds.length], (seriesErr, seriesResults) => {
+        if (seriesErr) {
+          // En caso de error al obtener las series, devolver un error 500
+          console.error('Error al obtener las series comunes:', seriesErr);
+          res.status(500).send('Error al obtener las series comunes');
+          return;
+        }
+
+        // Extracción de los IDs de series en común del resultado de la consulta
+        const commonSeriesIds = seriesResults.map(row => row.ID_Serie);
+        console.log(`Series comunes para los usuarios en el grupo ${groupId}:`, commonSeriesIds);
+        
+        // Devolvemos los IDs de las series comunes como respuesta JSON
+        res.json(commonSeriesIds);
+      });
+    } else {
+      // Si no hay usuarios en el grupo, devolvemos un error 404
+      res.status(404).send('No hay usuarios en el grupo');
     }
-
-    // Si se encuentra el grupo, extraemos su ID
-    const groupId = groupResults[0].ID_Grupo;
-    console.log("ID del grupo encontrado:", groupId);
-
-    // Consulta SQL para obtener los IDs de usuarios que pertenecen al grupo encontrado
-    let sqlGetUsersInGroup = `SELECT ID_Usuario FROM Usuario_Grupo2 WHERE ID_Grupo = ?`;
-
-    // Ejecución de la consulta para obtener los usuarios del grupo
-    db.query(sqlGetUsersInGroup, [groupId], (usersErr, usersResults) => {
-      if (usersErr) {
-        // En caso de error al obtener usuarios, devolver un error 500
-        console.error('Error en la consulta de usuarios del grupo:', usersErr);
-        res.status(500).send('Error al obtener los usuarios del grupo');
-        return;
-      }
-
-      // Extracción de los IDs de los usuarios del resultado de la consulta
-      const userIds = usersResults.map(row => row.ID_Usuario);
-      console.log(`Usuarios en el grupo ${groupId}:`, userIds);
-
-      // Si hay usuarios en el grupo, procedemos a buscar las series en común
-      if (userIds.length > 0) {
-        // Creación de placeholders para la consulta SQL (un '?' por cada ID de usuario)
-        let placeholders = userIds.map(() => '?').join(',');
-
-        // Consulta SQL para obtener los IDs de series que todos los usuarios tienen en común
-        let sqlGetCommonSeries = `
-          SELECT ID_Serie 
-          FROM Series 
-          WHERE ID_Usuario IN (${placeholders}) 
-          GROUP BY ID_Serie 
-          HAVING COUNT(DISTINCT ID_Usuario) = ?
-        `;
-
-        // Ejecución de la consulta para obtener las series en común
-        db.query(sqlGetCommonSeries, [...userIds, userIds.length], (seriesErr, seriesResults) => {
-          if (seriesErr) {
-            // En caso de error al obtener las series, devolver un error 500
-            console.error('Error al obtener las series comunes:', seriesErr);
-            res.status(500).send('Error al obtener las series comunes');
-            return;
-          }
-
-          // Extracción de los IDs de series en común del resultado de la consulta
-          const commonSeriesIds = seriesResults.map(row => row.ID_Serie);
-          console.log(`Series comunes para los usuarios en el grupo ${groupId}:`, commonSeriesIds);
-          
-          // Devolvemos los IDs de las series comunes como respuesta JSON
-          res.json(commonSeriesIds);
-        });
-      } else {
-        // Si no hay usuarios en el grupo, devolvemos un error 404
-        res.status(404).send('No hay usuarios en el grupo');
-      }
-    });
   });
 });
+
 
 
 
@@ -1493,6 +1465,50 @@ app.get('/miembros-grupo/:nombreGrupo', (req, res) => {
     });
   });
 });
+
+
+app.get('/miembros-grupo-POR-ID/:idGrupo', (req, res) => {
+  const { idGrupo } = req.params;
+
+  // Primero, obtén el ID del grupo basado en el nombre proporcionado
+  const sqlGetGroupName = 'SELECT Nombre_grupo FROM Grupos WHERE ID_Grupo = ?';
+
+  db.query(sqlGetGroupName, [idGrupo], (err, groupResults) => {
+    if (err) {
+      console.error('Error al buscar el grupo:', err);
+      return res.status(500).send('Error al buscar el grupo en el servidor');
+    }
+
+    if (groupResults.length === 0) {
+      return res.status(404).send('Grupo no encontrado');
+    }
+
+    const groupName = groupResults[0].Nombre_grupo;
+
+    // Luego, obtén los miembros del grupo usando el ID del grupo
+    const sqlGetGroupMembers = `
+      SELECT id, Usuarios.Nombre, Usuarios.Usuario, Usuarios.Apellidos
+      FROM Usuarios
+      JOIN Usuario_Grupo2 ON id = Usuario_Grupo2.ID_Usuario
+      WHERE Usuario_Grupo2.ID_Grupo = ?
+    `;
+
+    db.query(sqlGetGroupMembers, [idGrupo], (err, membersResults) => {
+      if (err) {
+        console.error('Error al obtener los miembros del grupo:', err);
+        return res.status(500).send('Error al obtener los miembros del grupo');
+      }
+
+      res.json({
+        nombreGrupo: groupName,
+        members: membersResults
+      });
+    });
+  });
+});
+
+
+
 
 
 app.get('/id-admin/:idGrupo', (req, res) => {

@@ -2813,3 +2813,14 @@ Version: '10.11.5-MariaDB-log'  socket: '/var/run/mysqld/mysqld.sock'  port: 330
 2024-04-17 19:08:52 0 [Note] /usr/bin/mariadbd: ready for connections.
 Version: '10.11.5-MariaDB-log'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  Alpine Linux
 2024-04-17 19:08:53 4 [Warning] Aborted connection 4 to db: 'unconnected' user: 'unauthenticated' host: 'localhost' (This connection closed normally without authentication)
+2024-04-17 19:14:34 6 [Warning] Aborted connection 6 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:26:32 33 [Warning] Aborted connection 33 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:31:34 56 [Warning] Aborted connection 56 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:33:35 57 [Warning] Aborted connection 57 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:42:33 58 [Warning] Aborted connection 58 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:44:02 61 [Warning] Aborted connection 61 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:46:45 62 [Warning] Aborted connection 62 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:47:37 63 [Warning] Aborted connection 63 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:50:51 64 [Warning] Aborted connection 64 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:52:44 69 [Warning] Aborted connection 69 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 19:54:14 70 [Warning] Aborted connection 70 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
