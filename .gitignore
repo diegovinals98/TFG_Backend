@@ -10,8 +10,6 @@ qbittorrent/
 radarr/
 shared/
 sonarr/
-mariadb/databases/
-mariadb/log/
 
 
 # Dependencias
