@@ -2769,3 +2769,6 @@ Version: '10.11.5-MariaDB-log'  socket: '/var/run/mysqld/mysqld.sock'  port: 330
 2024-04-17 17:07:28 4645 [Warning] Aborted connection 4645 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got timeout reading communication packets)
 2024-04-17 17:17:29 4646 [Warning] Aborted connection 4646 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got timeout reading communication packets)
 2024-04-17 17:27:30 4647 [Warning] Aborted connection 4647 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got timeout reading communication packets)
+2024-04-17 17:37:31 4648 [Warning] Aborted connection 4648 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got timeout reading communication packets)
+2024-04-17 17:38:21 4649 [Warning] Aborted connection 4649 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)
+2024-04-17 17:51:59 4650 [Warning] Aborted connection 4650 to db: 'Series' user: 'root' host: 'VL-VideoServer.local' (Got an error reading communication packets)

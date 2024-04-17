@@ -48,7 +48,7 @@ const options = {
     openapi: '3.0.0', // Versión de OpenAPI
     info: {
       title: 'API Family Series Track',
-      version: '1.0.1',
+      version: '1.1.0',
       description: 'Proporciona funcionalidades que permiten a los usuarios registrarse, iniciar sesión, gestionar su perfil y sus preferencias de visualización, así como seguir sus series favoritas. Los usuarios pueden agregar series a su lista, marcar episodios vistos, recibir notificaciones sobre nuevos episodios, y más. Además, la API facilita la interacción social permitiendo a los usuarios crear grupos, unirse a ellos, y compartir sus intereses en series con amigos o miembros del grupo. Con un enfoque en la experiencia del usuario, la API está construida para ser intuitiva y accesible, asegurando que los entusiastas de las series puedan llevar un seguimiento detallado de sus programas favoritos y descubrir nuevos basados en sus gustos y recomendaciones del sistema.',
     },
   },
