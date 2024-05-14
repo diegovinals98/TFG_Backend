@@ -69,6 +69,12 @@ http:
         - https
       rule: "Host(`soportefst.lapspartbox.com`)"
       service: soporteService
+    
+    traefik:
+      entryPoints:
+        - https
+      rule: "Host(`traefik.lapspartbox.com`)"
+      service: traefikService
 
 
     phpMyAdmin:
@@ -112,6 +118,12 @@ http:
       loadBalancer:
         servers:
           - url: http://172.20.0.37:8085
+
+    traefikService:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.3:8080
+
 
     
     webPrivacidadService:
