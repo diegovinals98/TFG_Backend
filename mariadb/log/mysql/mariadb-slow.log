@@ -19,3 +19,32 @@ Time		    Id Command	Argument
 /usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
 Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
 Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+# Time: 240512 22:54:07
+# User@Host: root[root] @ VL-VideoServer.local [172.20.0.1]
+# Thread_id: 2195  Schema: Series  QC_hit: No
+# Query_time: 5.382821  Lock_time: 0.000084  Rows_sent: 0  Rows_examined: 0
+# Rows_affected: 1  Bytes_sent: 11
+use Series;
+SET timestamp=1715547247;
+INSERT INTO ComentariosSerie (comentario, usuario_id, grupo_id, serie_id) VALUES ('toronaga es un crack ', 6610977, 765644, 126308);
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument
+/usr/bin/mariadbd, Version: 10.11.5-MariaDB-log (Alpine Linux). started with:
+Tcp port: 3306  Unix socket: /var/run/mysqld/mysqld.sock
+Time		    Id Command	Argument

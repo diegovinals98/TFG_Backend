@@ -170,6 +170,7 @@ services:
     networks:
       vinalsNetwork:
         ipv4_address: 172.20.0.3
+    
 
   clouflared:
     image: cloudflare/cloudflared:2022.2.2
@@ -259,6 +260,20 @@ services:
     environment:
       - PMA_HOST=mariadb
       - MYSQL_ROOT_PASSWORD=27101998
+  
+  dbeaver:
+    image: dbeaver/cloudbeaver:21.1.1
+    container_name: dbeaver
+    ports:
+      - "8085:8978"
+    environment:
+      - CB_ADMIN_NAME=admin
+      - CB_ADMIN_PASSWORD=admin
+    volumes:
+      - dbeaver-data:/opt/cloudbeaver/workspace
+    networks:
+      vinalsNetwork:
+        ipv4_address: 172.20.0.37
     
 
   tfg-backend:
@@ -312,4 +327,8 @@ services:
     volumes:
       - ${USERDIR}/docker/prowlarr:/config
     restart: always
+
+
+volumes:
+  dbeaver-data:
 

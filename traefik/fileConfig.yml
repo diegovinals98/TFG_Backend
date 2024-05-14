@@ -51,6 +51,13 @@ http:
       rule: "Host(`apitfg.lapspartbox.com`)"
       service: apitfgservice
 
+       # sonarr routing
+    dbeaver:
+      entryPoints:
+        - https
+      rule: "Host(`dbeaver.lapspartbox.com`)"
+      service: dbeaverservice
+
     web:
       entryPoints:
         - https
@@ -100,6 +107,12 @@ http:
       loadBalancer:
         servers:
           - url: http://172.20.0.33:3000
+
+    dbeaverservice:
+      loadBalancer:
+        servers:
+          - url: http://172.20.0.37:8085
+
     
     webPrivacidadService:
        loadBalancer:
