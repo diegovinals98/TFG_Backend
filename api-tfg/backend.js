@@ -464,6 +464,8 @@ app.get('/check-device-id/:deviceId', (req, res) => {
 
 app.post('/insert-device-id', (req, res) => {
   const { userId, deviceId } = req.body; // Obtener deviceId y userId del cuerpo de la solicitud
+  console.log("Id del usuario: ", userId);
+  console.log("Token del dispositivo: " , deviceId);
 
   if (!deviceId || !userId) {
     return res.status(400).send('Device ID y User ID son requeridos');
@@ -474,7 +476,7 @@ app.post('/insert-device-id', (req, res) => {
   // Consulta SQL para insertar el Device ID y el User ID
   const sql = "INSERT INTO DeviceTokens (IdUsuario, DeviceToken) VALUES (?, ?)";
 
-  db.query(sql, [deviceId, userId], (err, results) => {
+  db.query(sql, [userId, deviceId], (err, results) => {
     if (err) {
       console.error('Error al insertar en la base de datos:', err);
       return res.status(500).send('Error al insertar el Device ID y User ID en la base de datos');
