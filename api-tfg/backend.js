@@ -430,7 +430,7 @@ app.post('/usuario', (req, res) => {
 
 
 
-app.get('/check-device-id/:id', (req, res) => {
+app.get('/check-device-id/:deviceId', (req, res) => {
 
   console.log("Buscando a ver si existe el device id para un usuario");
 
@@ -449,7 +449,7 @@ app.get('/check-device-id/:id', (req, res) => {
       return;
     }
 
-    console.log("Resultado de la busqueda: " , deviceId);
+    console.log("Resultado de la busqueda: " , deviceId)
 
     if (results.length > 0) {
       // Devuelve el IdUsuario si se encontró el deviceId
