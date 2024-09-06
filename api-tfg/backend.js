@@ -485,6 +485,29 @@ app.post('/insert-device-id', (req, res) => {
   });
 });
 
+app.post('/delete-device-id', (req, res) => {
+  const { userId, deviceId } = req.body;
+
+  if (!userId || !deviceId) {
+    return res.status(400).send('User ID y Device ID son requeridos');
+  }
+
+  console.log("Eliminando el Device ID:", deviceId, "para el Usuario ID:", userId);
+
+  // Consulta SQL para eliminar el deviceId
+  const sql = "DELETE FROM DeviceTokens WHERE IdUsuario = ? AND DeviceToken = ?";
+
+  db.query(sql, [userId, deviceId], (err, result) => {
+    if (err) {
+      console.error('Error al eliminar el Device ID:', err);
+      return res.status(500).send('Error al eliminar el Device ID de la base de datos');
+    }
+
+    console.log('Device ID eliminado exitosamente:', result);
+    res.json({ message: 'Device ID eliminado correctamente' });
+  });
+});
+
 
 
 
