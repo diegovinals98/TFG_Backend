@@ -1238,34 +1238,34 @@ app.get('/usuarios-viendo-serie/:nombreGrupo/:idSerie', (req, res) => {
 
   const sql = `
     SELECT 
-  U.id,
-  U.Nombre,
-  T.Temporada_Mas_Alta,
-  MAX(C.Numero_Capitulo) AS Capitulo_Mas_Reciente
-FROM Usuarios U
-INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
-INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
-INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
-INNER JOIN (
-    -- Subconsulta para obtener la temporada más alta de cada usuario
-    SELECT 
-        U.id AS ID_Usuario, 
-        MAX(C.Numero_Temporada) AS Temporada_Mas_Alta
+    U.id,
+    U.Nombre,
+    T.Temporada_Mas_Alta,
+    MAX(C.Numero_Capitulo) AS Capitulo_Mas_Reciente
     FROM Usuarios U
     INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
     INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
     INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
+    INNER JOIN (
+        -- Subconsulta para obtener la temporada más alta de cada usuario
+        SELECT 
+            U.id AS ID_Usuario, 
+            MAX(C.Numero_Temporada) AS Temporada_Mas_Alta
+        FROM Usuarios U
+        INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
+        INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
+        INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
+        WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)
+          AND C.ID_Serie = ?
+        GROUP BY U.id
+    ) T ON U.id = T.ID_Usuario AND C.Numero_Temporada = T.Temporada_Mas_Alta
     WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)
       AND C.ID_Serie = ?
-    GROUP BY U.id
-) T ON U.id = T.ID_Usuario AND C.Numero_Temporada = T.Temporada_Mas_Alta
-WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)
-  AND C.ID_Serie = ?
-GROUP BY U.id, U.Nombre, T.Temporada_Mas_Alta
-ORDER BY T.Temporada_Mas_Alta DESC, Capitulo_Mas_Reciente DESC;
+    GROUP BY U.id, U.Nombre, T.Temporada_Mas_Alta
+    ORDER BY T.Temporada_Mas_Alta DESC, Capitulo_Mas_Reciente DESC;
   `;
 
-  db.query(sql, [nombreGrupo, idSerie], (err, results) => {
+  db.query(sql, [nombreGrupo, idSerie, nombreGrupo, idSerie], (err, results) => {
     if (err) {
       console.error('Error al realizar la consulta:', err);
       res.status(500).send('Error interno del servidor');
