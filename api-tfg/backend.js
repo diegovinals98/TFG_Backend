@@ -448,17 +448,17 @@ app.get('/check-device-id/:deviceId', (req, res) => {
       res.status(500).send("Error en la base de datos");
       return;
     }
-
-    console.log("Resultado de la busqueda: " , results[0].IdUsuario );
-
+   
     if (results.length > 0) {
       // Devuelve el IdUsuario si se encontró el deviceId
+      console.log("Resultado de la busqueda: ",  results[0].IdUsuario );
       res.json({ IdUsuario: results[0].IdUsuario });
     } else {
       // Si no se encontró, devuelve un mensaje indicando que no existe
-      res.status(404).send("Device ID no encontrado");
+      res.status(404).send("Device ID no encontrado: " , results);
     }
   });
+  
 });
 
 
