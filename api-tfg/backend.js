@@ -166,6 +166,36 @@ app.post('/login2', (req, res) => {
 });
 
 
+app.get('/get-user/:id', (req, res) => {
+  // Recupera el id del usuario desde el parámetro de la URL
+  const userId = req.params.id;
+
+  // Consulta SQL para obtener toda la información del usuario con el id proporcionado
+  const sql = 'SELECT * FROM Usuarios WHERE Id = ?';
+
+  // Ejecutar la consulta SQL
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("Error al consultar la base de datos:", err);
+      return res.status(500).send('Error al consultar la base de datos');
+    }
+
+    // Si se encuentra un usuario con el id proporcionado
+    if (results.length > 0) {
+      const user = results[0]; // Como el id es único, el primer resultado es el usuario
+      res.json({
+        success: 1,
+        usuario: user
+      });
+    } else {
+      // Si no se encuentra el usuario, se envía un mensaje indicando que no existe
+      res.json({ success: 0, message: "Usuario no encontrado" });
+    }
+  });
+});
+
+
+
 /**
  * @swagger
  * /usuario:
@@ -210,6 +240,7 @@ app.get('/usuario', (req, res) => {
     res.send(results);
   });
 });
+
 
 
 /**
@@ -394,6 +425,43 @@ app.post('/usuario', (req, res) => {
  *       500:
  *         description: Error en el servidor
  */
+
+
+
+app.get('/check-device-id/:id', (req, res) => {
+
+  console.log("Buscando a ver si existe el device id para un usuario");
+
+  // Recupera el parámetro 'id' de la URL
+  let deviceId = req.params.id;
+
+  // Consulta SQL con parámetro seguro
+  let sql = "SELECT IdUsuario FROM DeviceTokens WHERE DeviceToken = ?";
+  
+  // Ejecuta la consulta, pasando el valor del deviceId como parámetro
+  db.query(sql, [deviceId], (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("Error en la base de datos");
+      return;
+    }
+
+    if (results.length > 0) {
+      // Devuelve el IdUsuario si se encontró el deviceId
+      res.json({ IdUsuario: results[0].IdUsuario });
+    } else {
+      // Si no se encontró, devuelve un mensaje indicando que no existe
+      res.status(404).send("Device ID no encontrado");
+    }
+  });
+});
+
+
+
+
+
+
+
 app.get('/usuario_grupo', (req, res) => {
   console.log("llamado a Usuario_Grupo")
   let sql = 'SELECT * FROM Usuario_Grupo2';
@@ -403,6 +471,8 @@ app.get('/usuario_grupo', (req, res) => {
     res.send(results);
   });
 });
+
+
 
 
 /**
@@ -1168,18 +1238,31 @@ app.get('/usuarios-viendo-serie/:nombreGrupo/:idSerie', (req, res) => {
 
   const sql = `
     SELECT 
-      U.id,
-      U.Nombre,
-      MAX(C.Numero_Temporada) AS Temporada_Mas_Alta,
-      MAX(C.Numero_Capitulo) AS Capitulo_Mas_Reciente
+    U.id,
+    U.Nombre,
+    T.Temporada_Mas_Alta,
+    MAX(C.Numero_Capitulo) AS Capitulo_Mas_Reciente
     FROM Usuarios U
     INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
     INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
     INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
+    INNER JOIN (
+        -- Subconsulta para obtener la temporada más alta de cada usuario
+        SELECT 
+            U.id AS ID_Usuario, 
+            MAX(C.Numero_Temporada) AS Temporada_Mas_Alta
+        FROM Usuarios U
+        INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
+        INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
+        INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
+        WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)
+          AND C.ID_Serie = ?
+        GROUP BY U.id
+    ) T ON U.id = T.ID_Usuario AND C.Numero_Temporada = T.Temporada_Mas_Alta
     WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)
       AND C.ID_Serie = ?
-    GROUP BY U.id
-    ORDER BY Temporada_Mas_Alta DESC, Capitulo_Mas_Reciente DESC;
+    GROUP BY U.id, U.Nombre, T.Temporada_Mas_Alta
+    ORDER BY T.Temporada_Mas_Alta DESC, Capitulo_Mas_Reciente DESC;
   `;
 
   db.query(sql, [nombreGrupo, idSerie], (err, results) => {
@@ -1772,6 +1855,7 @@ app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
   const consultaSQL = `
     SELECT 
       Usuarios.Nombre, 
+      ComentariosSerie.usuario_id,
       Usuarios.Apellidos, 
       ComentariosSerie.comentario, 
       ComentariosSerie.fecha_hora
@@ -1793,6 +1877,7 @@ app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
 
     // Convierte los resultados en un formato más amigable si es necesario
     const comentarios = resultados.map(comentario => ({
+      idUsuario: comentario.usuario_id,
       nombreCompleto: `${comentario.Nombre} ${comentario.Apellidos}`,
       comentario: comentario.comentario,
       fechaHora: comentario.fecha_hora,
