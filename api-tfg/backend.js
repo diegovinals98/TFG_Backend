@@ -180,8 +180,10 @@ app.get('/get-user/:id', (req, res) => {
       return res.status(500).send('Error al consultar la base de datos');
     }
 
+    
     // Si se encuentra un usuario con el id proporcionado
     if (results.length > 0) {
+      console.log(results);
       const user = results[0]; // Como el id es único, el primer resultado es el usuario
       res.json({
         success: 1,
@@ -433,7 +435,8 @@ app.get('/check-device-id/:id', (req, res) => {
   console.log("Buscando a ver si existe el device id para un usuario");
 
   // Recupera el parámetro 'id' de la URL
-  let deviceId = req.params.id;
+  let deviceId = req.params.deviceId;
+  console.log("El device id que se esta buscando es: ", deviceId);
 
   // Consulta SQL con parámetro seguro
   let sql = "SELECT IdUsuario FROM DeviceTokens WHERE DeviceToken = ?";
@@ -445,6 +448,8 @@ app.get('/check-device-id/:id', (req, res) => {
       res.status(500).send("Error en la base de datos");
       return;
     }
+
+    console.log("Resultado de la busqueda: " , deviceId);
 
     if (results.length > 0) {
       // Devuelve el IdUsuario si se encontró el deviceId
