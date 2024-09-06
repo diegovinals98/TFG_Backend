@@ -449,7 +449,7 @@ app.get('/check-device-id/:deviceId', (req, res) => {
       return;
     }
 
-    console.log("Resultado de la busqueda: " , deviceId)
+    console.log("Resultado de la busqueda: " , results[0].IdUsuario );
 
     if (results.length > 0) {
       // Devuelve el IdUsuario si se encontró el deviceId
