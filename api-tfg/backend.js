@@ -462,7 +462,28 @@ app.get('/check-device-id/:deviceId', (req, res) => {
 });
 
 
+app.post('/insert-device-id', (req, res) => {
+  const { userId, deviceId } = req.body; // Obtener deviceId y userId del cuerpo de la solicitud
 
+  if (!deviceId || !userId) {
+    return res.status(400).send('Device ID y User ID son requeridos');
+  }
+
+  console.log("Insertando Device ID y User ID:", deviceId, userId);
+
+  // Consulta SQL para insertar el Device ID y el User ID
+  const sql = "INSERT INTO DeviceTokens (IdUsuario, DeviceToken) VALUES (?, ?)";
+
+  db.query(sql, [deviceId, userId], (err, results) => {
+    if (err) {
+      console.error('Error al insertar en la base de datos:', err);
+      return res.status(500).send('Error al insertar el Device ID y User ID en la base de datos');
+    }
+
+    console.log('Inserción exitosa:', results);
+    res.json({ message: 'Device ID y User ID insertados correctamente', insertId: results.insertId });
+  });
+});
 
 
 
