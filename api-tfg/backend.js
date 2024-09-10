@@ -1957,13 +1957,32 @@ app.get('/comentarios_por_grupo_serie/:idGrupo/:idSerie', async (req, res) => {
   const { idGrupo, idSerie } = req.params;
 
   try {
-    const comentarios = await db.query(
-      'SELECT * FROM ComentariosSerie WHERE idGrupo = ? AND idSerie = ? ORDER BY fechaHora',
+    // Obtener todos los comentarios relacionados con el grupo y la serie
+    const comentarios =  db.query(
+      'SELECT * FROM ComentariosSerie WHERE grupo_id = ? AND serie_id = ? ORDER BY fecha_hora',
       [idGrupo, idSerie]
     );
 
-    // Organiza los comentarios como un árbol de respuestas
-    const comentariosOrganizados = comentarios.reduce((acc, comentario) => {
+    // Función para obtener el nombre completo de un usuario dado su id
+    const obtenerNombreCompleto = async (idUsuario) => {
+      const usuario =  db.query('SELECT Nombre, Apellidos FROM Usuarios WHERE id = ?', [idUsuario]);
+      if (usuario.length > 0) {
+        return `${usuario[0].Nombre} ${usuario[0].Apellidos}`;
+      } else {
+        return 'Usuario Desconocido';
+      }
+    };
+
+    // Iterar sobre cada comentario para añadir el nombre completo del usuario que lo hizo
+    const comentariosConUsuario = await Promise.all(
+      comentarios.map(async (comentario) => {
+        const nombreCompleto = await obtenerNombreCompleto(comentario.usuario_id);
+        return { ...comentario, nombreCompleto };
+      })
+    );
+
+    // Organizar los comentarios en un árbol de respuestas
+    const comentariosOrganizados = comentariosConUsuario.reduce((acc, comentario) => {
       if (!comentario.respuestaA) {
         acc.push({ ...comentario, respuestas: [] });
       } else {
@@ -1974,13 +1993,16 @@ app.get('/comentarios_por_grupo_serie/:idGrupo/:idSerie', async (req, res) => {
       }
       return acc;
     }, []);
+
     console.log(comentariosOrganizados);
     res.json(comentariosOrganizados);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener los comentarios' });
   }
 });
+                    
                     
 
 
@@ -2156,7 +2178,7 @@ app.post('/anadir_comentario_a_serie', async (req, res) => {
 
   try {
     const nuevoComentario = await db.query(
-      'INSERT INTO ComentariosSerie (idUsuario, idGrupo, idSerie, comentario, respuestaA) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO ComentariosSerie (usuario_id, grupo_id, serie_id, comentario, respuestaA) VALUES (?, ?, ?, ?, ?)',
       [idUsuario, idGrupo, idSerie, comentario, respuestaA || null]
     );
 
