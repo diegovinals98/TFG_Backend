@@ -1953,50 +1953,35 @@ paths:
                     example: "Error al obtener los comentarios"
 
                     */
-app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
-  const grupoId = req.params.grupo_id;
-  const serieId = req.params.serie_id;
+app.get('/comentarios_por_grupo_serie/:idGrupo/:idSerie', async (req, res) => {
+  const { idGrupo, idSerie } = req.params;
 
-  if (!grupoId || !serieId) {
-    return res.status(400).send('Faltan parámetros necesarios: grupo_id y serie_id');
+  try {
+    const comentarios = await db.query(
+      'SELECT * FROM ComentariosSerie WHERE idGrupo = ? AND idSerie = ? ORDER BY fechaHora',
+      [idGrupo, idSerie]
+    );
+
+    // Organiza los comentarios como un árbol de respuestas
+    const comentariosOrganizados = comentarios.reduce((acc, comentario) => {
+      if (!comentario.respuestaA) {
+        acc.push({ ...comentario, respuestas: [] });
+      } else {
+        const padre = acc.find(c => c.idComentario === comentario.respuestaA);
+        if (padre) {
+          padre.respuestas.push(comentario);
+        }
+      }
+      return acc;
+    }, []);
+    console.log(comentariosOrganizados);
+    res.json(comentariosOrganizados);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al obtener los comentarios' });
   }
-
-  const consultaSQL = `
-    SELECT 
-      Usuarios.Nombre, 
-      ComentariosSerie.usuario_id,
-      Usuarios.Apellidos, 
-      ComentariosSerie.comentario, 
-      ComentariosSerie.fecha_hora
-    FROM 
-      ComentariosSerie
-    JOIN 
-      Usuarios ON ComentariosSerie.usuario_id = Usuarios.Id
-    WHERE 
-      ComentariosSerie.grupo_id = ? AND ComentariosSerie.serie_id = ?
-    ORDER BY 
-      ComentariosSerie.fecha_hora ASC
-  `;
-
-  db.query(consultaSQL, [grupoId, serieId], (error, resultados) => {
-    if (error) {
-      console.error('Error al obtener los comentarios:', error);
-      return res.status(500).send('Error al obtener los comentarios');
-    }
-
-    // Convierte los resultados en un formato más amigable si es necesario
-    const comentarios = resultados.map(comentario => ({
-      idUsuario: comentario.usuario_id,
-      nombreCompleto: `${comentario.Nombre} ${comentario.Apellidos}`,
-      comentario: comentario.comentario,
-      fechaHora: comentario.fecha_hora,
-    }));
-
-    console.log('COMENTARIOS' , comentarios)
-
-    res.json(comentarios);
-  });
 });
+                    
 
 
 /*
@@ -2166,31 +2151,22 @@ paths:
                     description: "Mensaje de error describiendo el problema."
                     example: "Error del servidor al insertar el comentario"
 */
-app.post('/anadir_comentario_a_serie', (req, res) => {
-  // Recibir los datos necesarios del cuerpo de la solicitud
-  const idUsuario = req.body.idUsuario;
-  const idGrupo = req.body.idGrupo;
-  const idSerie = req.body.idSerie;
-  const comentario = req.body.comentario;
+app.post('/anadir_comentario_a_serie', async (req, res) => {
+  const { idUsuario, idGrupo, idSerie, comentario, respuestaA } = req.body;
 
-  console.log("Id usuario: ", idUsuario);
-  console.log("Id grupo: ", idGrupo);
-  console.log("Id serie: ", idSerie);
-  console.log("Comentario: ", comentario);
+  try {
+    const nuevoComentario = await db.query(
+      'INSERT INTO ComentariosSerie (idUsuario, idGrupo, idSerie, comentario, respuestaA) VALUES (?, ?, ?, ?, ?)',
+      [idUsuario, idGrupo, idSerie, comentario, respuestaA || null]
+    );
 
-  // Insertar el comentario en la base de datos
-  db.query('INSERT INTO ComentariosSerie (comentario, usuario_id, grupo_id, serie_id) VALUES (?, ?, ?, ?)', [comentario, idUsuario, idGrupo, idSerie], (errorInsert, resultsInsert) => {
-    if (errorInsert) {
-      // Manejar errores de base de datos aquí
-      console.log("Error BBDD: ", errorInsert);
-      res.json({ success: 0, mensaje: 'Error del servidor al insertar el comentario' });
-    } else {
-      let mensaje = 'Comentario añadido con éxito';
-      console.log(mensaje);
-      res.json({ success: 1, mensaje: mensaje, idComentario: resultsInsert.insertId }); // Devuelve el ID del comentario insertado
-    }
-  });
+    res.json({ mensaje: 'Comentario añadido con éxito', comentario: nuevoComentario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al añadir el comentario' });
+  }
 });
+
 
 
 
