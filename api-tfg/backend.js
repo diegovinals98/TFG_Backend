@@ -720,35 +720,92 @@ app.get('/series-ids-usuario/:userId/:grupoId', (req, res) => {
 app.post('/agregar-serie-usuario', (req, res) => {
   const userId = req.body.userId;
   const idSerie = req.body.idSerie;
+  const idGrupo = req.body.idGrupo; // Asegúrate de recibir el ID del grupo --**  VER
 
-  console.log(`Solicitud para agregar la serie con ID ${idSerie} al usuario ${userId}`);
+  console.log(`Solicitud para agregar la serie con ID ${idSerie} al grupo ${idGrupo} y luego al usuario ${userId}`);
 
-  // Primero, verifica si ya existe el par userId e idSerie
-  let sqlCheck = `SELECT * FROM Series WHERE ID_Usuario = ? AND ID_Serie = ?`;
+  // Primero, verifica si la serie ya está asociada con el grupo
+  let sqlCheckGrupo = `SELECT * FROM Series_Grupos WHERE ID_Grupo = ? AND ID_Serie = ?`;
 
-  db.query(sqlCheck, [userId, idSerie], (err, results) => {
-    if (err) {
-      console.error('Error en la consulta:', err);
-      res.status(500).send('Error en el servidor');
-      return;
+  db.query(sqlCheckGrupo, [idGrupo, idSerie], (groupCheckErr, groupCheckResults) => {
+    if (groupCheckErr) {
+      console.error('Error al verificar la serie en el grupo:', groupCheckErr);
+      return res.status(500).send('Error al verificar la serie en el grupo');
     }
-    if (results.length > 0) {
-      // Si ya existe la serie para el usuario, no hagas la inserción
-      console.log(`La serie con ID ${idSerie} ya existe para el usuario ${userId}`);
-      res.status(409).send(`La serie ya existe`);
-    } else {
-      // Si no existe, inserta la nueva serie para el usuario
-      let sqlInsert = `INSERT INTO Series (ID_Usuario, ID_Serie) VALUES (?, ?)`;
 
-      db.query(sqlInsert, [userId, idSerie], (insertErr, insertResults) => {
-        if (insertErr) {
-          console.error('Error al insertar:', insertErr);
-          res.status(500).send('Error al insertar en el servidor');
-          return;
+    if (groupCheckResults.length > 0) {
+      // Si la serie ya está asociada con el grupo
+      console.log(`La serie con ID ${idSerie} ya está asociada con el grupo ${idGrupo}`);
+    } else {
+      // Insertar la serie en el grupo
+      let sqlInsertGrupo = `INSERT INTO Series_Grupos (ID_Grupo, ID_Serie) VALUES (?, ?)`;
+
+      db.query(sqlInsertGrupo, [idGrupo, idSerie], (insertGroupErr, insertGroupResults) => {
+        if (insertGroupErr) {
+          console.error('Error al insertar la serie en el grupo:', insertGroupErr);
+          return res.status(500).send('Error al insertar la serie en el grupo');
         }
-        console.log(`Serie con ID ${idSerie} agregada al usuario ${userId}`);
-        res.status(200).send(`Serie agregada exitosamente al usuario ${userId}`);
+
+        console.log(`Serie con ID ${idSerie} agregada al grupo ${idGrupo}`);
       });
+    }
+
+    // Ahora verificamos si la serie ya está asociada con el usuario
+    let sqlCheckUsuario = `SELECT * FROM Series WHERE ID_Usuario = ? AND ID_Serie = ?`;
+
+    db.query(sqlCheckUsuario, [userId, idSerie], (userCheckErr, userCheckResults) => {
+      if (userCheckErr) {
+        console.error('Error en la consulta:', userCheckErr);
+        return res.status(500).send('Error en el servidor');
+      }
+
+      if (userCheckResults.length > 0) {
+        // Si la serie ya está asociada con el usuario
+        console.log(`La serie con ID ${idSerie} ya existe para el usuario ${userId}`);
+        res.status(409).send(`La serie ya existe para el usuario`);
+      } else {
+        // Si no existe, inserta la serie para el usuario
+        let sqlInsertUsuario = `INSERT INTO Series (ID_Usuario, ID_Serie) VALUES (?, ?)`;
+
+        db.query(sqlInsertUsuario, [userId, idSerie], (insertErr, insertResults) => {
+          if (insertErr) {
+            console.error('Error al insertar:', insertErr);
+            return res.status(500).send('Error al insertar en el servidor');
+          }
+
+          console.log(`Serie con ID ${idSerie} agregada al usuario ${userId}`);
+          res.status(200).send(`Serie agregada exitosamente al grupo ${idGrupo} y al usuario ${userId}`);
+        });
+      }
+    });
+  });
+});
+
+app.get('/series-grupo/:idGrupo', (req, res) => {
+  const idGrupo = req.params.idGrupo;
+
+  console.log(`Buscando series para el grupo ${idGrupo}`);
+
+  // Consulta para obtener las series asociadas al grupo
+  let sql = `
+    SELECT S.ID_Serie, S.Nombre_Serie 
+    FROM Series S
+    JOIN Series_Grupos SG ON S.ID_Serie = SG.ID_Serie
+    WHERE SG.ID_Grupo = ?
+  `;
+
+  db.query(sql, [idGrupo], (err, results) => {
+    if (err) {
+      console.error('Error al consultar las series del grupo:', err);
+      return res.status(500).send('Error al consultar las series del grupo');
+    }
+
+    if (results.length > 0) {
+      console.log(`Series encontradas para el grupo ${idGrupo}:`, results);
+      res.json(results);
+    } else {
+      console.log(`No se encontraron series para el grupo ${idGrupo}`);
+      res.status(404).send('No se encontraron series para el grupo');
     }
   });
 });
