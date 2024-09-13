@@ -941,54 +941,78 @@ app.get('/grupo_por_nombre/:nombreGrupo', (req, res) => {
 
 
 
-app.get('/comentarios_por_grupo_serie/:idGrupo/:idSerie', async (req, res) => {
-  const { idGrupo, idSerie } = req.params;
+app.get('/comentarios_por_grupo_serie/:grupo_id/:serie_id', (req, res) => {
+  const grupoId = req.params.grupo_id;
+  const serieId = req.params.serie_id;
 
-  try {
-    // Obtener todos los comentarios relacionados con el grupo y la serie
-    const comentarios =  db.query(
-      'SELECT * FROM ComentariosSerie WHERE grupo_id = ? AND serie_id = ? ORDER BY fecha_hora',
-      [idGrupo, idSerie]
-    );
-
-    // Función para obtener el nombre completo de un usuario dado su id
-    const obtenerNombreCompleto = async (idUsuario) => {
-      const usuario =  db.query('SELECT Nombre, Apellidos FROM Usuarios WHERE id = ?', [idUsuario]);
-      if (usuario.length > 0) {
-        return `${usuario[0].Nombre} ${usuario[0].Apellidos}`;
-      } else {
-        return 'Usuario Desconocido';
-      }
-    };
-
-    // Iterar sobre cada comentario para añadir el nombre completo del usuario que lo hizo
-    const comentariosConUsuario = await Promise.all(
-      comentarios.map(async (comentario) => {
-        const nombreCompleto = await obtenerNombreCompleto(comentario.usuario_id);
-        return { ...comentario, nombreCompleto };
-      })
-    );
-
-    // Organizar los comentarios en un árbol de respuestas
-    const comentariosOrganizados = comentariosConUsuario.reduce((acc, comentario) => {
-      if (!comentario.respuestaA) {
-        acc.push({ ...comentario, respuestas: [] });
-      } else {
-        const padre = acc.find(c => c.idComentario === comentario.respuestaA);
-        if (padre) {
-          padre.respuestas.push(comentario);
+  if (!grupoId || !serieId) {
+    return res.status(400).send('Faltan parámetros necesarios: grupo_id y serie_id');
         }
+
+  const consultaSQL = `
+    SELECT 
+      Usuarios.Nombre, 
+      ComentariosSerie.usuario_id,
+      Usuarios.Apellidos, 
+      ComentariosSerie.comentario, 
+      ComentariosSerie.fecha_hora
+    FROM 
+      ComentariosSerie
+    JOIN 
+      Usuarios ON ComentariosSerie.usuario_id = Usuarios.Id
+    WHERE 
+      ComentariosSerie.grupo_id = ? AND ComentariosSerie.serie_id = ?
+    ORDER BY 
+      ComentariosSerie.fecha_hora ASC
+  `;
+
+  db.query(consultaSQL, [grupoId, serieId], (error, resultados) => {
+    if (error) {
+      console.error('Error al obtener los comentarios:', error);
+      return res.status(500).send('Error al obtener los comentarios');
       }
-      return acc;
-    }, []);
 
-    console.log(comentariosOrganizados);
-    res.json(comentariosOrganizados);
+    // Convierte los resultados en un formato más amigable si es necesario
+    const comentarios = resultados.map(comentario => ({
+      idUsuario: comentario.usuario_id,
+      nombreCompleto: `${comentario.Nombre} ${comentario.Apellidos}`,
+      comentario: comentario.comentario,
+      fechaHora: comentario.fecha_hora,
+    }));
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: 'Error al obtener los comentarios' });
-  }
+    console.log('COMENTARIOS' , comentarios)
+
+    res.json(comentarios);
+  });
+});
+
+
+
+
+app.post('/anadir_comentario_a_serie', (req, res) => {
+// Recibir los datos necesarios del cuerpo de la solicitud
+const idUsuario = req.body.idUsuario;
+const idGrupo = req.body.idGrupo;
+const idSerie = req.body.idSerie;
+const comentario = req.body.comentario;
+
+console.log("Id usuario: ", idUsuario);
+console.log("Id grupo: ", idGrupo);
+console.log("Id serie: ", idSerie);
+console.log("Comentario: ", comentario);
+
+// Insertar el comentario en la base de datos
+db.query('INSERT INTO ComentariosSerie (comentario, usuario_id, grupo_id, serie_id) VALUES (?, ?, ?, ?)', [comentario, idUsuario, idGrupo, idSerie], (errorInsert, resultsInsert) => {
+  if (errorInsert) {
+    // Manejar errores de base de datos aquí
+    console.log("Error BBDD: ", errorInsert);
+    res.json({ success: 0, mensaje: 'Error del servidor al insertar el comentario' });
+  } else {
+    let mensaje = 'Comentario añadido con éxito';
+    console.log(mensaje);
+    res.json({ success: 1, mensaje: mensaje, idComentario: resultsInsert.insertId }); // Devuelve el ID del comentario insertado
+}
+});
 });
                     
                     
