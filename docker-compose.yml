@@ -32,9 +32,10 @@ services:
       - ${USERDIR}/docker/radarr:/config
       - ${USERDIR}/Downloads/completed:/downloads
       - ${USERDIR}/media/movies:/movies
-      - /mnt/2TB_Samsung/Peliculas:/moviesSamsung2Tb
-      - /mnt/1TB_Samsung/Peliculas:/moviesSamsung1Tb
-      - /mnt/SSD2tb/Pelis:/moviesSSD2Tb
+      - /mnt/Disco1/Peliculas:/Disco1/peliculas
+      - /mnt/Disco2/Peliculas:/Disco2/peliculas
+      - /mnt/Disco3/Pelis:/Disco3/peliculas
+      - /mnt/Disco4/Pelis:/Disco4/peliculas
       - "/etc/localtime:/etc/localtime:ro"
       - ${USERDIR}/docker/shared:/shared
     ports:
@@ -55,9 +56,10 @@ services:
       - ${USERDIR}/docker/sonarr:/config
       - ${USERDIR}/Downloads/completed:/downloads
       - ${USERDIR}/media/tvshows:/tv
-      - /mnt/2TB_Samsung/SeriesTV:/TvSamsung2Tb
-      - /mnt/1TB_Samsung/SeriesTV:/TvSamsung1Tb
-      - /mnt/SSD2tb/Series:/TvSSD2Tb
+      - /mnt/Disco1/SeriesTV:/Disco1/series
+      - /mnt/Disco2/SeriesTV:/Disco2/series
+      - /mnt/Disco3/Series:/Disco3/series
+      - /mnt/Disco4/series:/Disco4/series
       - "/etc/localtime:/etc/localtime:ro"
       - ${USERDIR}/docker/shared:/shared
     ports:
@@ -122,12 +124,16 @@ services:
       - ${USERDIR}/docker/plex:/config
       - ${USERDIR}/media/tvshows:/tv
       - ${USERDIR}/media/movies:/movies
-      - /mnt/2TB_Samsung/Peliculas:/Disco2TB/peliculas
-      - /mnt/2TB_Samsung/SeriesTV:/Disco2TB/series
-      - /mnt/1TB_Samsung/Peliculas:/Disco1TB/peliculas
-      - /mnt/1TB_Samsung/SeriesTV:/Disco1TB/series
-      - /mnt/SSD2tb/Pelis:/Disco_2tb/peliculas
-      - /mnt/SSD2tb/Series:/Disco_2tb/series
+      - /mnt/Disco1/Peliculas:/Disco1/peliculas
+      - /mnt/Disco2/Peliculas:/Disco2/peliculas
+      - /mnt/Disco3/Pelis:/Disco3/peliculas
+      - /mnt/Disco4/Pelis:/Disco4/peliculas
+      - /mnt/Disco1/SeriesTV:/Disco1/series
+      - /mnt/Disco2/SeriesTV:/Disco2/series
+      - /mnt/Disco3/Series:/Disco3/series
+      - /mnt/Disco4/series:/Disco4/series
+      
+      
     restart: unless-stopped
     networks:
       vinalsNetwork:

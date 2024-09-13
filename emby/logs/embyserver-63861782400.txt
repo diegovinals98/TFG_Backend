@@ -1,0 +1,35 @@
+2024-09-12 00:00:00.003 Info App: Emby Server Version: 4.8.8.0
+2024-09-12 00:00:00.011 Info App: Emby
+	Command line: /system/EmbyServer.dll -programdata /config -ffdetect /bin/ffdetect -ffmpeg /bin/ffmpeg -ffprobe /bin/ffprobe -restartexitcode 3
+	Operating system: Linux version 6.8.0-40-generic (buildd@lcy02-amd64-078) (x86_64-linux-gnu-gcc-12 (Ubuntu 12.3.0-1ubuntu1~22.04) 12.3.0, GNU ld (GNU Binutils for Ubunt
+	Framework: .NET 6.0.25
+	OS/Process: x64/x64
+	Runtime: system/System.Private.CoreLib.dll
+	Processor count: 16
+	Data path: /config
+	Application path: /system
+2024-09-12 00:00:00.011 Info App: Logs path: /config/logs
+2024-09-12 00:00:00.011 Info App: Cache path: /config/cache
+2024-09-12 00:00:00.011 Info App: Internal metadata path: /config/metadata
+2024-09-12 00:00:00.011 Info App: Transcoding temporary files path: /config/transcoding-temp
+2024-09-12 00:00:00.011 Info App: Plugins:
+	Backup & Restore 1.6.7.0
+	Bluray Folder Support 1.0.2.0
+	Cinema Intros 1.0.47.0
+	DLNA 1.4.3.0
+	Dvd Folder Support 1.0.0.0
+	Emby Guide Data 1.0.13.0
+	Fanart.tv 1.0.16.0
+	M3U TV Tuner 1.0.31.0
+	MovieDb 1.8.0.0
+	MusicBrainz 1.0.24.0
+	Nfo Metadata 1.0.80.0
+	OMDb 1.0.21.0
+	Open Subtitles 1.0.59.0
+	Port Mapper 1.2.4.0
+	Studio Images 1.0.3.0
+	TheAudioDb 1.0.18.0
+	TheTVDB 1.5.1.0
+	Webhooks 1.0.35.0
+	XmlTV 1.2.0.0
+2024-09-12 19:06:18.316 Info HttpClient: GET https://www.mb3admin.com/admin/service/EmbyPackages.json
