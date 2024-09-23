@@ -1304,18 +1304,18 @@ app.get('/obtener-token/:idUsuario', (req, res) => {
   const { idUsuario } = req.params;
   console.log('ID del usuario:', idUsuario);
 
-  // Supongamos que tienes una función para obtener el token del usuario
+  // Supongamos que tienes una función para obtener los tokens del usuario
   db.query('SELECT token FROM TokensNotificaciones WHERE Usuario_Id = ?', [idUsuario], (err, results) => {
     if (err) {
-      console.error('Error al obtener el token del usuario:', err);
-      return res.status(500).send('Error al obtener el token del usuario');
+      console.error('Error al obtener los tokens del usuario:', err);
+      return res.status(500).send('Error al obtener los tokens del usuario');
     }
 
     if (results.length > 0) {
-      const token = results[0].token;
-      res.json({ token });
+      const tokens = results.map(result => result.token);
+      res.json({ tokens });
     } else {
-      res.status(404).send('Token no encontrado');
+      res.status(404).send('Tokens no encontrados');
     }
   });
 });
