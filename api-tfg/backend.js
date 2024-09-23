@@ -1266,6 +1266,38 @@ app.get('/series-vistas/:idUsuario', (req, res) => {
   res.json(seriesVistas);
 });
 
+// NOTIFICACIONES
+app.post('/registrar-token-notificacion', (req, res) => {
+  console.log('Iniciando registro de token de notificación');
+  const { userId, token } = req.body;
+  console.log(`Datos recibidos - userId: ${userId}, token: ${token}`);
+
+  // Primero, comprobar si el token ya existe para el usuario
+  console.log('Comprobando si el token ya existe para el usuario');
+  db.query('SELECT * FROM TokensNotificaciones WHERE Usuario_Id = ? AND token = ?', [userId, token], (err, results) => {
+    if (err) {
+      console.error('Error al comprobar el token de notificación:', err);
+      return res.status(500).send('Error al comprobar el token de notificación');
+    }
+
+    if (results.length > 0) {
+      // Si el token ya existe, enviar un mensaje indicando que ya existe
+      console.log('El token de notificación ya existe para este usuario');
+      res.send('El token de notificación ya existe para este usuario');
+    } else {
+      // Si el token no existe, insertarlo en la base de datos
+      console.log('El token no existe, insertándolo en la base de datos');
+      db.query('INSERT INTO TokensNotificaciones (Usuario_Id, token) VALUES (?, ?)', [userId, token], (err, result) => {
+        if (err) {
+          console.error('Error al registrar el token de notificación:', err);
+          return res.status(500).send('Error al registrar el token de notificación');
+        }
+        console.log('Token de notificación registrado correctamente');
+        res.send('Token de notificación registrado correctamente');
+      });
+    }
+  });
+});
 
 
 
