@@ -1197,6 +1197,75 @@ app.post('/enviar-soporte', (req, res) => {
   });
 });
 
+app.get('/capitulos-vistos/:idUsuario', (req, res) => {
+  const usuarioId = req.params.idUsuario;
+
+  console.log("Usuario Id: ", usuarioId);
+  if (!usuarioId) {
+    return res.status(400).send('Faltan parámetros necesarios: usuario_id');
+  }
+
+  const consultaSQL = `
+    SELECT 
+      Series.ID_Serie,
+      COUNT(DISTINCT Visualizaciones.ID_Capitulo) AS capitulosVistos
+    FROM 
+      Series
+    JOIN 
+      Capitulo ON Series.ID_Serie = Capitulo.ID_Serie
+    JOIN 
+      Visualizaciones ON Visualizaciones.ID_Capitulo = Capitulo.ID_Capitulo
+    WHERE 
+      Visualizaciones.ID_Usuario = ?
+    GROUP BY 
+      Series.ID_Serie
+    ORDER BY 
+      capitulosVistos DESC
+  `;
+
+  db.query(consultaSQL, [usuarioId], (error, resultados) => {
+    if (error) {
+      console.error('Error al obtener los capítulos vistos:', error);
+      return res.status(500).send('Error al obtener los capítulos vistos');
+    }
+
+    // Convierte los resultados en un formato más amigable si es necesario
+    const capitulosVistos = resultados.map(serie => ({
+      serie: serie.ID_Serie,
+      capitulosVistos: serie.capitulosVistos,
+    }));
+
+    console.log('Capítulos Vistos:', capitulosVistos);
+
+    res.json(capitulosVistos);
+  });
+});
+
+
+
+// Ejemplo de endpoint para temporadas vistas en total
+app.get('/temporadas-vistas/:idUsuario', (req, res) => {
+  const { idUsuario } = req.params;
+
+  // Consulta a la base de datos para obtener las temporadas vistas
+  const totalTemporadasVistas = { totalTemporadasVistas: 10 };
+
+  res.json(totalTemporadasVistas);
+});
+
+// Ejemplo de endpoint para series vistas
+app.get('/series-vistas/:idUsuario', (req, res) => {
+  const { idUsuario } = req.params;
+
+  // Consulta a la base de datos para obtener las series vistas
+  const seriesVistas = [
+    { serie: 'Breaking Bad', temporadasVistas: 5 },
+    { serie: 'Stranger Things', temporadasVistas: 3 }
+  ];
+
+  res.json(seriesVistas);
+});
+
 
 
 

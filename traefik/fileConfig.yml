@@ -83,6 +83,14 @@ http:
       rule: "Host(`adminmariadb.lapspartbox.com`)"
       service: phpMyAdminService
       #middlewar
+    
+    webConciertos:
+      entryPoints:
+        - https
+      rule: "Host(`webconciertos.lapspartbox.com`)"
+      service: webConciertosService
+      #middlewar
+
 
     emby:
       entryPoints:
@@ -130,13 +138,12 @@ http:
       loadBalancer:
         servers:
           - url: http://172.20.0.3:8080
-    
-    embyService:
+
+    webConciertosService:
       loadBalancer:
         servers:
-          - url: http://172.20.0.28:8096
-
-
+          - url: http://172.20.0.32:80
+  
     
     webPrivacidadService:
        loadBalancer:
