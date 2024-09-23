@@ -1300,6 +1300,29 @@ app.post('/registrar-token-notificacion', (req, res) => {
 });
 
 
+app.get('/obtener-token/:idUsuario', (req, res) => {
+  const { idUsuario } = req.params;
+  console.log('ID del usuario:', idUsuario);
+
+  // Supongamos que tienes una función para obtener el token del usuario
+  db.query('SELECT token FROM TokensNotificaciones WHERE Usuario_Id = ?', [idUsuario], (err, results) => {
+    if (err) {
+      console.error('Error al obtener el token del usuario:', err);
+      return res.status(500).send('Error al obtener el token del usuario');
+    }
+
+    if (results.length > 0) {
+      const token = results[0].token;
+      res.json({ token });
+    } else {
+      res.status(404).send('Token no encontrado');
+    }
+  });
+});
+
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
