@@ -126,7 +126,7 @@ services:
       - ${USERDIR}/media/movies:/movies
       - /mnt/Disco1/Peliculas:/Disco1/peliculas
       - /mnt/Disco2/Peliculas:/Disco2/peliculas
-      - /mnt/Disco3/Pelis:/Disco3/peliculas
+      - /mnt/Disco3/Pelis:/Disco3/peliculas3
       - /mnt/Disco4/Pelis:/Disco4/peliculas
       - /mnt/Disco1/SeriesTV:/Disco1/series
       - /mnt/Disco2/SeriesTV:/Disco2/series
@@ -138,7 +138,7 @@ services:
     networks:
       vinalsNetwork:
         ipv4_address: 172.20.0.7
-    
+
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:4.6.0
@@ -176,6 +176,34 @@ services:
     networks:
       vinalsNetwork:
         ipv4_address: 172.20.0.3
+  
+    
+  tautulli:
+    image: tautulli/tautulli:latest
+    container_name: tautulli
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${USERDIR}/docker/tautulli:/config
+      - ${USERDIR}/media/tvshows:/tv
+      - ${USERDIR}/media/movies:/movies
+      - /mnt/Disco1/Peliculas:/Disco1/peliculas
+      - /mnt/Disco2/Peliculas:/Disco2/peliculas
+      - /mnt/Disco3/Pelis:/Disco3/peliculas
+      - /mnt/Disco4/Pelis:/Disco4/peliculas
+      - /mnt/Disco1/SeriesTV:/Disco1/series
+      - /mnt/Disco2/SeriesTV:/Disco2/series
+      - /mnt/Disco3/Series:/Disco3/series
+      - /mnt/Disco4/series:/Disco4/series
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8282:8181
+    restart: unless-stopped
+    networks:
+      vinalsNetwork:
+        ipv4_address: 172.20.0.4
     
 
   clouflared:
@@ -290,6 +318,27 @@ services:
       target: development
     ports:
       - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tfg-backend.rule=Host(`apitfg.lapspartbox.com`)"
+      - "traefik.http.routers.tfg-backend.entrypoints=https"
+      - "traefik.http.routers.tfg-backend.tls=true"
+      - "traefik.http.routers.tfg-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.tfg-backend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.websocket.rule=Host(`apitfg.lapspartbox.com`) && PathPrefix(`/socket`)"
+      - "traefik.http.routers.websocket.entrypoints=https"
+      - "traefik.http.routers.websocket.tls=true"
+      - "traefik.http.routers.websocket.service=tfg-backend"
+      - "traefik.http.routers.websocket.middlewares=websocket-headers"
+      - "traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Upgrade=websocket"
+      - "traefik.http.middlewares.websocket-headers.headers.customrequestheaders.Connection=Upgrade"
+      - "traefik.http.middlewares.websocket-headers.headers.accessControlAllowOrigin=*"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowOrigin=*"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowMethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=*"
+      - "traefik.http.middlewares.cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.routers.tfg-backend.middlewares=cors,websocket-headers"
+
     networks:
       vinalsNetwork:
         ipv4_address: 172.20.0.33

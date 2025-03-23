@@ -1,25 +1,49 @@
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
-
+const crypto = require('crypto');
+const http = require('http');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const WebSocket = require('ws');
+const { Server } = require('socket.io');
 
 
 const app = express();
 
-app.use(express.json()); // Para analizar application/json
-console.log('Conectando...')
+const server = http.createServer(app); // servidor HTTP común para ambos
+const wss = new WebSocket.Server({ server }); // WebSocket sobre ese servidor
 
+app.use(express.json()); // Para analizar application/json
+
+app.use(cors()); // Permite todos los orígenes
+
+console.log('Conectando...')
 
 // Crear conexión a la base de datos
 const db = mysql.createConnection({
-  host: '192.168.1.113', // La IP de tu máquina donde corre Docker
-  user: 'root', // El usuario de la base de datos
+  host: '192.168.1.113', // La IP interna del contenedor MariaDB
+  user: 'diego', // El usuario de la base de datos
   password: '27101998', // La contraseña de la base de datos
-  database: 'Series' // El nombre de tu base de datos
+  database: 'Series2', // El nombre de tu base de datos
+  charset: 'utf8mb4'
 });
 
+const dbBoda = mysql.createConnection({
+  host: '192.168.1.113', // La IP interna del contenedor MariaDB
+  user: 'diego', // El usuario de la base de datos
+  password: '27101998', // La contraseña de la base de datos
+  database: 'BodaSofiaDiego', // El nombre de tu base de datos
+  charset: 'utf8mb4'
+});
+
+
+const io = new Server(http, {
+  cors: {
+    origin: '*', // Puedes restringirlo si quieres
+    methods: ['GET', 'POST']
+  }
+});
 
 
 // Conectar a la base de datos
@@ -30,18 +54,159 @@ db.connect((err) => {
   }
   const now = new Date();
   const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-  console.log(`Conectado a MariaDB - ${now.toLocaleDateString('es-ES', options)}`);
+  console.log(`Conectado a BBDD Series - ${now.toLocaleDateString('es-ES', options)}`);
 });
 
-app.use(cors({
-  origin: 'https://soportefst.lapspartbox.com' // Asegúrate de cambiar esto por tu origen específico
-}));
 
+// Conectar a la base de datos
+dbBoda.connect((err) => {
+  if(err) {
+    console.log('----- ERROR -----')
+    throw err;
+  }
+  const now = new Date();
+  const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+  console.log(`Conectado a BBDD BODA - ${now.toLocaleDateString('es-ES', options)}`);
+});
+
+
+// Lista para almacenar los clientes conectados
+const clients = new Set();
+
+
+app.use(cors()); // Permite todos los orígenes
 
 
 app.get('/admin/health', (req, res) => {
   res.send('Hello World');
 });
+
+
+wss.on('connection', (ws) => {
+  console.log('📡 Nuevo cliente conectado a WebSocket');
+  clients.add(ws);
+  console.log('🔗 Clientes conectados actualmente:', clients.size);
+
+  ws.on('message', (message) => {
+    try {
+      const parsedMessage = JSON.parse(message);
+      console.log('📩 Mensaje recibido vía WebSocket:', parsedMessage);
+
+      if (parsedMessage.tipo === 'nuevo_invitado') {
+        console.log("Tipo socket nuevo invitado");
+        insertarInvitado(parsedMessage.data, null, ws);
+      }
+    } catch (error) {
+      console.error('❌ Error al parsear mensaje WebSocket:', error, 'Mensaje recibido:', message);
+    }
+  });
+
+  ws.on('close', () => {
+    clients.delete(ws);
+    console.log('❌ Cliente desconectado, clientes restantes:', clients.size);
+  });
+});
+
+
+
+// ✅ GET /invitados - Obtener todos
+app.get('/invitados', (req, res) => {
+
+  console.log("Seleccion de todos los invitados");
+  dbBoda.query('SELECT * FROM invitados', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al obtener invitados' });
+    }
+    console.log("Resulados: " + results);
+    res.json(results);
+  });
+});
+
+const insertarInvitado = (data, res = null, ws = null) => {
+  const {
+    nombre_completo,
+    asistira,
+    numero_acompanantes,
+    restricciones,
+    asistencia_autobus,
+    mensaje_para_novios
+  } = data;
+
+  const query = `
+    INSERT INTO invitados (
+      nombre_completo, asistira, numero_acompanantes,
+      restricciones, asistencia_autobus, mensaje_para_novios
+    ) VALUES (?, ?, ?, ?, ?, ?)`;
+
+  dbBoda.query(query, [
+    nombre_completo,
+    asistira,
+    numero_acompanantes,
+    restricciones,
+    asistencia_autobus,
+    mensaje_para_novios
+  ], (err, result) => {
+    if (err) {
+      const mensjae_error = JSON.stringify({ tipo: 'confimracion', data: "not ok" });
+      clients.forEach(ws => ws.readyState === WebSocket.OPEN && ws.send(mensjae_error));
+      console.error('❌ Error al guardar invitado:', err);
+      if (res) res.status(500).json({ error: 'Error al guardar invitado' });
+      return;
+    }
+
+    const nuevoInvitado = {
+      id: result.insertId,
+      nombre_completo,
+      asistira,
+      numero_acompanantes,
+      restricciones,
+      asistencia_autobus,
+      mensaje_para_novios
+    };
+
+    const confirmacion = JSON.stringify({ tipo: 'confimracion', data: "ok" });
+    clients.forEach(ws => ws.readyState === WebSocket.OPEN && ws.send(confirmacion));
+
+    // ✅ Emitir el mensaje por WebSocket nativo
+    const mensaje = JSON.stringify({ tipo: 'nuevo_invitado', data: nuevoInvitado });
+    clients.forEach(ws => ws.readyState === WebSocket.OPEN && ws.send(mensaje));
+
+    console.log('✅ Nuevo invitado agregado y emitido por WebSocket:', nuevoInvitado);
+
+    if (res) {
+      res.status(201).json({ id: result.insertId, message: 'Invitado guardado con éxito 🎉' });
+    }
+  });
+};
+
+
+
+app.post('/apple-login', (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  const sql = 'SELECT * FROM Usuarios WHERE Usuario = ?';
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('Error al buscar usuario con Apple ID:', err);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const usuario = results[0];
+    res.json({ usuario });
+  });
+});
+
+
 
 
 app.post('/login2', (req, res) => {
@@ -114,6 +279,27 @@ app.get('/usuario', (req, res) => {
     if(err) throw err;
     console.log(results);
     res.send(results);
+  });
+});
+
+
+app.get('/usuario/:nombreUsuario', (req, res) => {
+  const { nombreUsuario } = req.params;
+  console.log(`Buscando información para el usuario: ${nombreUsuario}`);
+  
+  let sql = 'SELECT * FROM Usuarios WHERE Usuario = ?';
+  db.query(sql, [nombreUsuario], (err, results) => {
+    if (err) {
+      console.error('Error al buscar el usuario:', err);
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+    
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    console.log('Usuario encontrado:', results[0]);
+    res.json(results[0]);
   });
 });
 
@@ -197,7 +383,7 @@ app.get('/check-device-id/:deviceId', (req, res) => {
       res.json({ IdUsuario: results[0].IdUsuario });
     } else {
       // Si no se encontró, devuelve un mensaje indicando que no existe
-      res.status(404).send("Device ID no encontrado: " , results);
+      res.status(404).json({ message: "Device ID no encontrado", results: results });
     }
   });
   
@@ -512,7 +698,7 @@ app.post('/agregar-visualizacion', (req, res) => {
 
 
 function agregarVisualizacion(userId, capituloId, res) {
-  const fechaActual = new Date().toISOString().slice(0, 10);
+  const fechaActual = new Date();
   const insertarVisualizacionSql = "INSERT INTO Visualizaciones (ID_Usuario, ID_Capitulo, Fecha_Visualizacion) VALUES (?, ?, ?)";
   db.query(insertarVisualizacionSql, [userId, capituloId, fechaActual], (err, results) => {
     if (err) {
@@ -637,17 +823,31 @@ app.get('/serie/:idSerie/usuarios', (req, res) => {
 app.get('/usuarios-viendo-serie/:nombreGrupo/:idSerie', (req, res) => {
   const { nombreGrupo, idSerie } = req.params;
 
+  // Primero, obtener todos los miembros del grupo
+  const obtenerMiembrosGrupoSql = `SELECT U.id, U.Nombre FROM Usuarios U JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario WHERE UG.ID_Grupo = (SELECT ID_Grupo FROM Grupos WHERE Nombre_grupo = ?)`;
+  db.query(obtenerMiembrosGrupoSql, [nombreGrupo], (err, miembros) => {
+    if (err) {
+      console.error('Error al obtener los miembros del grupo:', err);
+      return res.status(500).send('Error al obtener los miembros del grupo');
+    }
+
+    // Llamada a la función para obtener los usuarios viendo la serie
+    obtenerUsuariosViendoSerie(miembros, nombreGrupo, idSerie, res);
+  });
+});
+
+function obtenerUsuariosViendoSerie(miembros, nombreGrupo, idSerie, res) {
   const sql = `
     SELECT 
     U.id,
     U.Nombre,
-    T.Temporada_Mas_Alta,
-    MAX(C.Numero_Capitulo) AS Capitulo_Mas_Reciente
+    COALESCE(T.Temporada_Mas_Alta, 0) AS Temporada_Mas_Alta,
+    COALESCE(MAX(C.Numero_Capitulo), 0) AS Capitulo_Mas_Reciente
     FROM Usuarios U
-    INNER JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
-    INNER JOIN Visualizaciones V ON U.id = V.ID_Usuario
-    INNER JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
-    INNER JOIN (
+    LEFT JOIN Usuario_Grupo2 UG ON U.id = UG.ID_Usuario
+    LEFT JOIN Visualizaciones V ON U.id = V.ID_Usuario
+    LEFT JOIN Capitulo C ON V.ID_Capitulo = C.ID_Capitulo
+    LEFT JOIN (
         -- Subconsulta para obtener la temporada más alta de cada usuario
         SELECT 
             U.id AS ID_Usuario, 
@@ -671,11 +871,32 @@ app.get('/usuarios-viendo-serie/:nombreGrupo/:idSerie', (req, res) => {
       console.error('Error al realizar la consulta:', err);
       res.status(500).send('Error interno del servidor');
     } else {
-      console.log(results);
-      res.json(results);
+      // Asegurarse de que todos los miembros del grupo estén incluidos, incluso si no tienen visualizaciones
+      const resultadosCompletos = miembros.map(miembro => {
+        const encontrado = results.find(resultado => resultado.id === miembro.id);
+        if (encontrado) {
+          return encontrado;
+        } else {
+          return {
+            id: miembro.id,
+            Nombre: miembro.Nombre,
+            Temporada_Mas_Alta: 0,
+            Capitulo_Mas_Reciente: 0
+          };
+        }
+      }).sort((a, b) => {
+        if (a.Temporada_Mas_Alta === b.Temporada_Mas_Alta) {
+          return b.Capitulo_Mas_Reciente - a.Capitulo_Mas_Reciente;
+        } else {
+          return b.Temporada_Mas_Alta - a.Temporada_Mas_Alta;
+        }
+      });
+
+      console.log(resultadosCompletos);
+      res.json(resultadosCompletos);
     }
   });
-});
+}
 
 
 const insertarGrupoConIdUnico = (nombreGrupo, admin, res, callback) => {
@@ -1197,6 +1418,9 @@ app.post('/enviar-soporte', (req, res) => {
   });
 });
 
+
+
+
 app.get('/capitulos-vistos/:idUsuario', (req, res) => {
   const usuarioId = req.params.idUsuario;
 
@@ -1243,7 +1467,7 @@ app.get('/capitulos-vistos/:idUsuario', (req, res) => {
 
 
 
-// Ejemplo de endpoint para temporadas vistas en total
+// Ejemplo de endpoint para temporadas en total
 app.get('/temporadas-vistas/:idUsuario', (req, res) => {
   const { idUsuario } = req.params;
 
@@ -1300,6 +1524,7 @@ app.post('/registrar-token-notificacion', (req, res) => {
 });
 
 
+// obetner token de notificacion push
 app.get('/obtener-token/:idUsuario', (req, res) => {
   const { idUsuario } = req.params;
   console.log('ID del usuario:', idUsuario);
@@ -1320,12 +1545,258 @@ app.get('/obtener-token/:idUsuario', (req, res) => {
   });
 });
 
+// Eliminar token de notificación push específico
+app.delete('/eliminar-token', (req, res) => {
+  const { token } = req.body;
+  console.log('Eliminando token:', token);
 
+  db.query('DELETE FROM TokensNotificaciones WHERE token = ?', [token], (err, result) => {
+    if (err) {
+      console.error('Error al eliminar el token:', err);
+      return res.status(500).send('Error al eliminar el token');
+    }
+
+    if (result.affectedRows > 0) {
+      console.log(`Se eliminó el token ${token}`);
+      res.send(`Token eliminado correctamente`);
+    } else {
+      console.log(`No se encontró el token ${token} para eliminar`);
+      res.status(404).send('No se encontró el token para eliminar');
+    }
+  });
+});
+
+
+// Endpoint para solicitar la recuperación de contraseña
+app.post('/solicitar-recuperacion-contrasena', (req, res) => {
+  const { email, usuarioParams } = req.body;
+  console.log('Entramos en solicitar recuperación de contraseña');
+  console.log('Email: ', email);
+  console.log('Usuario: ', usuarioParams);
+
+  // Verificar si el usuario existe
+  db.query('SELECT * FROM Usuarios WHERE Usuario = ?', [usuarioParams], (err, results) => {
+    if (err) {
+      console.error('Error al buscar el usuario:', err);
+      return res.status(500).send('Error al buscar el usuario');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('Usuario no encontrado');
+    }
+
+    const usuario = results[0];
+    const token = crypto.randomBytes(20).toString('hex');
+    const expiracion = Date.now() + 3600000; // 1 hora
+
+    // Almacenar el token y la fecha de expiración en la base de datos
+    db.query('INSERT INTO tokenContrasena (resetPasswordToken, resetPasswordExpires, Email, nombreUsuario) VALUES (?, ?, ?, ?)', [token, expiracion, email, usuarioParams], (err) => {
+      if (err) {
+        console.error('Error al almacenar el token:', err);
+        return res.status(500).send('Error al almacenar el token');
+      }
+
+      let transporter = nodemailer.createTransport({
+        service: 'gmail', // Ejemplo con Gmail; ajusta según tu proveedor
+        auth: {
+            user: 'diego.vinalslage@gmail.com', // Tu dirección de correo
+            pass: 'jdlh mfat iezv vcgp', // Tu contraseña o token de app
+        }
+    });
+  
+    let mailOptions = {
+        from: `"FAMILY SERIES TRACK" <diego.vinalslage@gmail.com>`,
+        to: email,
+        subject: 'Recuperación de contraseña',
+        text: `Recibiste este correo porque solicitaste la recuperación de la contraseña de tu cuenta.\n\n` +
+              `Por favor, usa el siguiente token para recuperar tu contraseña:\n\n` +
+              `${token}\n\n` +
+              `Si no solicitaste esto, por favor ignora este correo y tu contraseña permanecerá sin cambios.\n`
+      };
+
+      // Enviar el correo electrónico
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error al enviar el correo:', error);
+          return res.status(500).send('Error al enviar el correo');
+        }
+        res.json({ success: 1 });
+      });
+    });
+  });
+});
+
+// Endpoint para verificar el token y cambiar la contraseña
+app.post('/recuperar-contrasena', (req, res) => {
+  const { token, nuevaContrasena } = req.body;
+
+  console.log('Entramos en recuperar contraseña');
+  console.log('Token: ', token);
+  console.log('Nueva contraseña: ', nuevaContrasena);
+  // Verificar si el token es válido y no ha expirado
+  db.query('SELECT * FROM tokenContrasena WHERE resetPasswordToken = ? AND resetPasswordExpires > ?', [token, Date.now()], (err, results) => {
+    if (err) {
+      console.error('Error al buscar el token:', err);
+      return res.status(500).send('Error al buscar el token');
+    }
+
+    if (results.length === 0) {
+      return res.status(400).send('Token inválido o expirado');
+    }
+
+    const usuarioNombre = results[0].nombreUsuario;
+
+    // Actualizar la contraseña del usuario
+    db.query('UPDATE Usuarios SET Contraseña = ? WHERE Usuario = ?', [nuevaContrasena, usuarioNombre], (err) => {
+        if (err) {
+          console.error('Error al actualizar la contraseña:', err);
+          return res.status(500).send('Error al actualizar la contraseña');
+        }
+        res.json({ success: 1 });
+    });
+  });
+});
+
+
+app.post('/anadir-favorito', (req, res) => {
+  const { idUsuario, idSerie } = req.body;
+
+  if (!idUsuario || !idSerie) {
+    return res.status(400).send('ID de Usuario y ID de Serie son requeridos');
+  }
+
+  const sqlInsertFavorito = 'INSERT INTO Favoritos (ID_Usuario, ID_Serie) VALUES (?, ?)';
+
+  db.query(sqlInsertFavorito, [idUsuario, idSerie], (err, result) => {
+    if (err) {
+      console.error('Error al insertar en la tabla Favoritos:', err);
+      return res.status(500).send('Error al insertar en la tabla Favoritos');
+    }
+
+    console.log('Favorito añadido con éxito:', result);
+    res.json({ message: 'Favorito añadido con éxito', insertId: result.insertId });
+  });
+});
+
+
+app.get('/existe-favorito/:idUsuario/:idSerie', (req, res) => {
+  const { idUsuario, idSerie } = req.params;
+
+  if (!idUsuario || !idSerie) {
+    return res.status(400).send('ID de Usuario y ID de Serie son requeridos');
+  }
+
+  const sqlCheckFavorito = 'SELECT * FROM Favoritos WHERE ID_Usuario = ? AND ID_Serie = ?';
+
+  db.query(sqlCheckFavorito, [idUsuario, idSerie], (err, results) => {
+    if (err) {
+      console.error('Error al verificar en la tabla Favoritos:', err);
+      return res.status(500).send('Error al verificar en la tabla Favoritos');
+    }
+
+    if (results.length > 0) {
+      res.json({ exists: true, message: 'El favorito existe' });
+    } else {
+      res.json({ exists: false, message: 'El favorito no existe' });
+    }
+  });
+});
+
+
+app.get('/series-favoritas/:idUsuario', (req, res) => {
+  const { idUsuario } = req.params;
+
+  if (!idUsuario) {
+    return res.status(400).send('ID de Usuario es requerido');
+  }
+
+  const sqlGetSeriesFavoritas = 'SELECT ID_Serie FROM Favoritos WHERE ID_Usuario = ?';
+
+  db.query(sqlGetSeriesFavoritas, [idUsuario], (err, results) => {
+    if (err) {
+      console.error('Error al obtener las series favoritas:', err);
+      return res.status(500).send('Error al obtener las series favoritas');
+    }
+
+    const seriesIds = results.map(row => row.ID_Serie);
+    res.json({ seriesIds });
+  });
+});
+
+
+app.delete('/eliminar-favorito', (req, res) => {
+  const { idUsuario, idSerie } = req.body;
+
+  if (!idUsuario || !idSerie) {
+    return res.status(400).send('ID de Usuario y ID de Serie son requeridos');
+  }
+
+  const sqlDeleteFavorito = 'DELETE FROM Favoritos WHERE ID_Usuario = ? AND ID_Serie = ?';
+
+  db.query(sqlDeleteFavorito, [idUsuario, idSerie], (err, result) => {
+    if (err) {
+      console.error('Error al eliminar de la tabla Favoritos:', err);
+      return res.status(500).send('Error al eliminar de la tabla Favoritos');
+    }
+
+    if (result.affectedRows > 0) {
+      console.log('Favorito eliminado con éxito:', result);
+      res.json({ message: 'Favorito eliminado con éxito' });
+    } else {
+      res.status(404).send('Favorito no encontrado');
+    }
+  });
+});
+app.get('/visualizaciones-grupo-serie/:idGrupo/:idSerie', (req, res) => {
+  console.log('Recibida petición GET /visualizaciones-grupo-serie');
+  const { idGrupo, idSerie } = req.params;
+  console.log('Parámetros recibidos:', { idGrupo, idSerie });
+
+  if (!idGrupo || !idSerie) {
+    console.log('Error: Faltan parámetros requeridos');
+    return res.status(400).json({ error: 'Se requieren ID de grupo y serie' });
+  }
+
+  const sql = `
+    SELECT 
+      u.Nombre,
+      u.Apellidos, 
+      c.Numero_Temporada,
+      c.Numero_Capitulo,
+      v.Fecha_Visualizacion
+    FROM Visualizaciones v
+    INNER JOIN Usuarios u ON v.ID_Usuario = u.Id
+    INNER JOIN Usuario_Grupo2 ug ON u.Id = ug.ID_Usuario
+    INNER JOIN Capitulo c ON v.ID_Capitulo = c.ID_Capitulo
+    WHERE ug.ID_Grupo = ? 
+    AND c.ID_Serie = ?
+    ORDER BY v.Fecha_Visualizacion DESC
+  `;
+  console.log('Ejecutando consulta SQL:', sql);
+
+  db.query(sql, [idGrupo, idSerie], (err, results) => {
+    if (err) {
+      console.error('Error al obtener visualizaciones:', err);
+      return res.status(500).json({ error: 'Error al obtener visualizaciones' });
+    }
+
+    console.log('Resultados obtenidos:', results.length);
+    const visualizaciones = results.map(row => ({
+      nombreUsuario: `${row.Nombre} ${row.Apellidos}`,
+      temporada: row.Numero_Temporada,
+      capitulo: row.Numero_Capitulo, 
+      fecha: row.Fecha_Visualizacion
+    }));
+    console.log('Visualizaciones procesadas:', visualizaciones);
+
+    res.json(visualizaciones);
+  });
+});
 
 
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
 

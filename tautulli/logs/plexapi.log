@@ -1,0 +1,4 @@
+2024-11-18 13:42:47,861       server:758  DEBUG     GET http://172.20.0.7:32400/
+2024-11-18 13:42:47,865       server:758  DEBUG     GET http://172.20.0.7:32400/library
+2024-11-18 13:42:47,866       server:758  DEBUG     GET http://172.20.0.7:32400/library/sections
+2024-11-18 13:42:47,869       server:758  DEBUG     GET http://172.20.0.7:32400/library/sections/3/all?includeGuids=1&type=18

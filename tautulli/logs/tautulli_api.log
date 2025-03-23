@@ -1,0 +1,17 @@
+2024-11-18 13:50:50 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: API called with kwargs: {'apikey': 'TU_API_KEY_DE_TAUTULLI', 'cmd': 'get_history', 'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:50:50 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: Invalid apikey.
+2024-11-18 13:50:50 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: Cleaned kwargs: None
+2024-11-18 13:51:56 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_history', 'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:51:56 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: Cleaned kwargs: {'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:52:24 - DEBUG   :: CP Server Thread-10 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_history', 'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:52:24 - DEBUG   :: CP Server Thread-10 : Tautulli APIv2 :: Cleaned kwargs: {'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:54:02 - DEBUG   :: CP Server Thread-12 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_history', 'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:54:02 - DEBUG   :: CP Server Thread-12 : Tautulli APIv2 :: Cleaned kwargs: {'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:57:08 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_history', 'media_type': 'movie', 'length': '10000'}
+2024-11-18 13:57:08 - DEBUG   :: CP Server Thread-11 : Tautulli APIv2 :: Cleaned kwargs: {'media_type': 'movie', 'length': '10000'}
+2024-11-22 11:34:37 - DEBUG   :: CP Server Thread-10 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_activity'}
+2024-11-22 11:34:37 - DEBUG   :: CP Server Thread-10 : Tautulli APIv2 :: Cleaned kwargs: {}
+2024-11-22 11:34:50 - DEBUG   :: CP Server Thread-8 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_activity'}
+2024-11-22 11:34:50 - DEBUG   :: CP Server Thread-8 : Tautulli APIv2 :: Cleaned kwargs: {}
+2024-11-22 11:38:27 - DEBUG   :: CP Server Thread-8 : Tautulli APIv2 :: API called with kwargs: {'apikey': '****************', 'cmd': 'get_users'}
+2024-11-22 11:38:27 - DEBUG   :: CP Server Thread-8 : Tautulli APIv2 :: Cleaned kwargs: {}

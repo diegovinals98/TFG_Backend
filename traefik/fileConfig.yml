@@ -92,11 +92,11 @@ http:
       #middlewar
 
 
-    emby:
+    tautulli:
       entryPoints:
         - https
-      rule: "Host(`emby.lapspartbox.com`)"
-      service: embyService
+      rule: "Host(`estadisticas.lapspartbox.com`)"
+      service: tautulliService
       #middlewar
 
 
@@ -121,7 +121,12 @@ http:
       loadBalancer:
         servers:
           - url: http://172.20.0.27:9000
+
     # organizr service
+    tautulliService:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8282
 
     # mariaDb service
     apitfgservice:
